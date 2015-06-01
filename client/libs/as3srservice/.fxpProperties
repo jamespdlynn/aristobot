@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<fxpProperties abbreviated="false" authoringTool="Flex Builder" parentProject="6cf8fb76-3637-4d17-9aeb-e52561cdee11" projectUUID="4734023d-73ca-49a6-8ba2-4972cd36aad1" sdkVersion="4.5.0" uuid="d83b493a-6bfd-4c07-ae82-9dc2399f3dba" version="9">
+  <projects/>
+  <src/>
+  <swc>
+    <linked location="sdkPlaceHolder" path="sdkPlaceHolder" position="0" uuid="d83b493a-6bfd-4c07-ae82-9dc2399f3dba"/>
+    <linked location="C:/Working/Sir Robot/Client Libs/as3srservice/trunk/libs" path="/libs" position="1" uuid="d83b493a-6bfd-4c07-ae82-9dc2399f3dba"/>
+  </swc>
+  <misc/>
+  <theme/>
+  <mxmlFormattingPrefs groupAttributesByState="true" maxLineWidth="100" mxmlAlignAttributes="true" mxmlAttributeOrder="id,userLabel,includeIn,excludeFrom,visible,x,y,z,left,right,top,bottom,width,height,minWidth,minHeight,maxWidth,maxHeight,label" mxmlKeepAttributeValuesOrganized="true"/>
+</fxpProperties>

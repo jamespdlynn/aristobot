@@ -1,0 +1,2 @@
+java -jar /Applications/Adobe\ Flash\ Builder\ 4.6/sdks/4.6.0/lib/adt.jar -package -target ipa-ad-hoc -provisioning-profile /certs/dev/ChessMatesDevelopment.mobileprovision -storetype pkcs12 -keystore /certs/dev/ios_development.p12 -storepass "fR0gg3r" ChessBeta.ipa ChessBeta-app.xml ChessBeta.swf custom_assets Default-568@2x.png Default-Portrait.png Default.png Default@2x.png -extdir /Users/Admin/Documents/Adobe\ Flash\ Buillder\ 4.6/.metadata/.plugins/com.adobe.flexbuilder.project.ui/ANEFiles/Chess/com.adobe.flexide.multiplatform.ios.platform
+

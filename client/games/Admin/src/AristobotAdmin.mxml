@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
+					   initialize="initializeHandler(event)"
+					   applicationComplete="applicationCompleteHandler(event)"
+					   minWidth="1024"
+					   minHeight="768" xmlns:views="com.aristobot.admin.views.*"
+					   skinClass="com.aristobot.admin.skins.WindowSkin"
+					   currentState="home">
+	
+	<fx:Style source="assets/styles/CustomStyles.css"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.admin.managers.AlertManager;
+			import com.aristobot.admin.windows.LoadWindow;
+			import com.aristobot.admin.windows.SendPushNotificationWindow;
+			import com.aristobot.admin.windows.SignInWindow;
+			import com.aristobot.as3srserrvice.events.FaultEvent;
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.data.DeviceData;
+			import com.aristobot.data.RegistrationData;
+			
+			import mx.events.FlexEvent;
+			
+			protected var srm:ServiceModel = ServiceModel.getInstance();
+			
+			protected var localData:SharedObject;
+			
+			protected const SHARED_OBJECT_FILE_NAME:String = "localData";
+									
+			protected const API_KEY:String = "2efa0b7e434740f49ce011a33cb1e6d4";
+			
+			public static const SIGN_IN_SUCCESS:String = "success";
+							
+			protected function initializeHandler(event:FlexEvent):void
+			{
+				localData = SharedObject.getLocal(SHARED_OBJECT_FILE_NAME);
+				srm.setUp(API_KEY, defaultFaultHandler);
+			}
+			
+			protected function applicationCompleteHandler(event:FlexEvent):void
+			{
+				if (localData.data && localData.data.deviceId){
+					login();
+				}
+				else{
+					connect();
+				}
+			}
+			
+			protected function connect(event:Event = null):void
+			{
+				AlertManager.closeAllWindows();
+				srm.authenticationService.connect(getDeviceData(), connectResultHandler, defaultFaultHandler);
+				
+				var loadWindow:LoadWindow = new LoadWindow();
+				loadWindow.label = "Connecting...";
+				AlertManager.displayCustomWindow(loadWindow);
+			}
+			
+			protected function connectResultHandler(event:ResultEvent):void
+			{	
+				var data:RegistrationData = event.resultObj as RegistrationData;
+				localData.data.deviceId = data.deviceId;
+				localData.data.username = data.registeredUsername;
+				
+				AlertManager.closeAllWindows();
+				
+				login();
+			}	
+			
+			protected function login(event:Event = null):void
+			{
+				enabled = false;
+				
+				var window:SignInWindow = new SignInWindow();
+				window.username = localData.data.username;
+				window.deviceId = localData.data.deviceId;
+				window.addEventListener(SignInWindow.SUCCESS, loginSuccess);
+				
+				AlertManager.displayCustomWindow(window);
+			}
+			
+			protected function loginSuccess(event:Event):void
+			{
+				var window:SignInWindow = event.target as SignInWindow;
+				window.removeEventListener(SignInWindow.SUCCESS, loginSuccess);
+				
+				localData.data.username = window.username;
+				localData.flush();
+				
+				enabled = true;
+				AlertManager.closeAllWindows();
+			}			
+			
+			protected function defaultFaultHandler(event:FaultEvent):void
+			{
+				AlertManager.closeAllWindows();
+				
+				switch(event.faultCode)
+				{
+					case FaultEvent.INVALID_DEVICE_ID:
+						localData.data.deviceId = null;
+						localData.flush();
+						connect();
+						break;
+					
+					case FaultEvent.INVALID_ACCESS_TOKEN:
+					case FaultEvent.AUTO_LOGIN_FAILED:
+						login();
+						break;
+					
+					//In an unable to connect scenario we want to either retry auto login or exit the application altogether
+					case FaultEvent.CONNECTION_ERROR:
+					case FaultEvent.CONNECTION_TIME_OUT:
+						AlertManager.displayConfirmWindow(event.message, ["Retry","Exit"], connect, exitApplication);
+						break;
+					
+					case FaultEvent.DEPRECATED_VERSION_NUMBER:
+						AlertManager.displayNotificaitonWindow("This version of the application is no longer valid. Please install the latest available version.", exitApplication);
+						break;
+					
+					default:
+						AlertManager.displayNotificaitonWindow(event.message);
+						break;
+				}
+				
+			}
+			
+			protected function exitApplication(event:Event=null):void
+			{
+				nativeApplication.exit();
+			}
+			
+			protected function getDeviceData():DeviceData
+			{
+				var data:DeviceData = new DeviceData();
+					
+				if (localData.data.deviceId)
+				{
+					data.deviceId = localData.data.deviceId;
+				}
+				else
+				{
+					var vNetworkInterfaces:Vector.<NetworkInterface> = NetworkInfo.networkInfo.findInterfaces();
+					for each (var networkInterface:NetworkInterface in vNetworkInterfaces)
+					{
+						if (networkInterface.hardwareAddress && networkInterface.hardwareAddress.length > 0){
+							data.deviceId = networkInterface.hardwareAddress;
+							break;
+						}
+					}
+				}
+				
+				data.deviceType = DeviceData.OTHER;
+				data.os = Capabilities.os;
+				data.cpuArchitecture = Capabilities.cpuArchitecture;
+				data.screenDPI = Capabilities.screenDPI;
+				
+				return data;
+			}
+			
+
+			
+			protected function cleanUp(event:MouseEvent):void
+			{
+				AlertManager.displayConfirmWindow("This function runs nightly and can cause a high level of stress on the server, do you wish to continue?", ["Yes","No"],function (event:Event):void{
+					var loadWindow:LoadWindow = new LoadWindow();
+					loadWindow.label = "Cleaning...";
+					AlertManager.displayCustomWindow(loadWindow);
+					srm.adminService.clean(updateResult);
+				});
+				
+			}
+			
+			protected function updateRankings(event:MouseEvent):void
+			{
+				var loadWindow:LoadWindow = new LoadWindow();
+				loadWindow.label = "Updating Rankings...";
+				AlertManager.displayCustomWindow(loadWindow);
+				srm.adminService.updateRankings(updateResult);
+			}
+			
+			protected function updateResult(event:ResultEvent):void
+			{
+				AlertManager.closeAllWindows();
+				AlertManager.displayNotificaitonWindow("Success!");
+			}
+			
+			protected function sendPushNotification(event:MouseEvent):void
+			{
+				var pushWindow:SendPushNotificationWindow = new SendPushNotificationWindow();
+				AlertManager.displayCustomWindow(pushWindow);
+			}
+
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:states>
+		<s:State name="home"/>
+		<s:State name="editIcons" stateGroups="icons,edit"/> 
+		<s:State name="addIcons" stateGroups="icons,add"/> 
+		<s:State name="editMessages" stateGroups="messages,edit"/> 
+		<s:State name="addMessage" stateGroups="messages,add"/> 
+	</s:states>
+	
+	<s:transitions>
+		<s:Transition fromState="*" toState="*">
+			<s:Fade alphaFrom="0" alphaTo="1" duration="500"/>
+		</s:Transition>
+	</s:transitions>
+	
+	<s:Group width="100%" top="90" bottom="0">
+		
+		
+		<s:VGroup id="general" width="100%" height="100%" includeIn="home" gap="15" horizontalAlign="center" verticalAlign="middle">
+			
+			<s:Button width="400" height="80"  fontSize="32" label="Manage Icons" styleName="specialButton" click="{currentState='editIcons'}"/>
+			<s:Button width="400" height="80" fontSize="32"  label="Manage Messages" styleName="specialButton" click="{currentState='editMessages'}"/>
+					  
+			<s:Spacer height="15"/>
+					  
+			<s:Button width="400" height="80" fontSize="32" label="Server Data Flush" styleName="stopButton" click="cleanUp(event)" />
+			<s:Button width="400" height="80" fontSize="32"  label="Update Rankings" styleName="stopButton" click="updateRankings(event)"/>
+			<s:Button width="400" height="80" fontSize="32"  label="Send Push Notification" styleName="stopButton" click="sendPushNotification(event)"/>
+			
+		</s:VGroup>
+		
+		<mx:ViewStack id="iconsViewStack" width="100%" height="100%" includeIn="icons">
+			
+			<views:EditIcons id="editIcons" label="View/Edit" width="100%" height="100%"/>
+			
+			<views:AddIcons  id="addIcons" label="Add New" width="100%" height="100%"/>
+			
+		</mx:ViewStack>
+		
+		<mx:ViewStack id="messagesViewStack" width="100%" height="100%" includeIn="messages">
+			
+			<views:EditMessages id="editMessages" label="View/Edit"  width="100%" height="100%"/>
+			
+			<views:AddMessage id="addMessage" label="Send New"  width="100%" height="100%"/>
+			
+		</mx:ViewStack>
+	</s:Group>
+	
+
+	<s:Group width="100%" top="0" height="90" >
+		
+		<s:BitmapImage width="100%" height="100%" fillMode="repeat" source="@Embed('/assets/images/bg-checker.png')"/>
+		
+		<s:HGroup width="100%" height="100%" gap="10" verticalAlign="middle" paddingLeft="25">
+			<mx:Image source="@Embed('/assets/icons/aristobot_72.png')" useHandCursor="true" buttonMode="true" mouseChildren="false" click="{currentState='home'}"/>
+			<s:Label styleName="viewTitle" text="Aristobot Admin Console">
+				<s:filters>
+					   <s:DropShadowFilter alpha="0.6" distance="3" blurX="4" blurY="4"/>
+				 </s:filters>
+			</s:Label>
+		</s:HGroup>
+		
+		<s:ButtonBar height="50" right="25" verticalCenter="0" includeIn="edit,add" dataProvider.icons="{iconsViewStack}" dataProvider.messages="{messagesViewStack}" requireSelection="true"/>
+		
+		
+		<s:filters>
+			<mx:DropShadowFilter distance="4" color="0x000000" alpha="0.5"/>
+		</s:filters>
+		
+	</s:Group>
+	
+	
+	
+	
+	
+</s:WindowedApplication>

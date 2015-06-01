@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<flexLibProperties includeAllClasses="false" useMultiPlatformConfig="true" version="3">
+  <includeClasses>
+    <classEntry path="com.aristobot.flexmobile.components.CircleRepresenter"/>
+    <classEntry path="com.aristobot.flexmobile.components.EmailContactInput"/>
+    <classEntry path="com.aristobot.flexmobile.components.FormItem"/>
+    <classEntry path="com.aristobot.flexmobile.components.FormTextInput"/>
+    <classEntry path="com.aristobot.flexmobile.components.GameActionBar"/>
+    <classEntry path="com.aristobot.flexmobile.components.GameMessageBar"/>
+    <classEntry path="com.aristobot.flexmobile.components.GameSubmitBar"/>
+    <classEntry path="com.aristobot.flexmobile.components.IGameBoard"/>
+    <classEntry path="com.aristobot.flexmobile.components.IconDisplayHolder"/>
+    <classEntry path="com.aristobot.flexmobile.components.IconRank"/>
+    <classEntry path="com.aristobot.flexmobile.components.Line"/>
+    <classEntry path="com.aristobot.flexmobile.components.LinkButton"/>
+    <classEntry path="com.aristobot.flexmobile.components.RatingsDisplay"/>
+    <classEntry path="com.aristobot.flexmobile.components.RecordDisplay"/>
+    <classEntry path="com.aristobot.flexmobile.components.RecordDisplayItem"/>
+    <classEntry path="com.aristobot.flexmobile.components.RoboButton"/>
+    <classEntry path="com.aristobot.flexmobile.components.RoboIconButton"/>
+    <classEntry path="com.aristobot.flexmobile.components.UnlockMeter"/>
+    <classEntry path="com.aristobot.flexmobile.components.windows.AlertWindow"/>
+    <classEntry path="com.aristobot.flexmobile.components.windows.ConfirmWindow"/>
+    <classEntry path="com.aristobot.flexmobile.components.windows.GameConclusionWindow"/>
+    <classEntry path="com.aristobot.flexmobile.components.windows.LoadWindow"/>
+    <classEntry path="com.aristobot.flexmobile.components.windows.NotificationWindow"/>
+    <classEntry path="com.aristobot.flexmobile.components.windows.RateWindow"/>
+    <classEntry path="com.aristobot.flexmobile.components.windows.SettingsWindow"/>
+    <classEntry path="com.aristobot.flexmobile.data.GameBoardUpdateData"/>
+    <classEntry path="com.aristobot.flexmobile.data.IconListData"/>
+    <classEntry path="com.aristobot.flexmobile.data.ModifiedChatMessage"/>
+    <classEntry path="com.aristobot.flexmobile.data.RegistrationCredentials"/>
+    <classEntry path="com.aristobot.flexmobile.events.GameEvent"/>
+    <classEntry path="com.aristobot.flexmobile.model.ActionContentManager"/>
+    <classEntry path="com.aristobot.flexmobile.model.AlertManager"/>
+    <classEntry path="com.aristobot.flexmobile.model.DeviceManager"/>
+    <classEntry path="com.aristobot.flexmobile.model.GameModel"/>
+    <classEntry path="com.aristobot.flexmobile.model.ImageManager"/>
+    <classEntry path="com.aristobot.flexmobile.model.SoundManager"/>
+    <classEntry path="com.aristobot.flexmobile.model.ViewController"/>
+    <classEntry path="com.aristobot.flexmobile.model.ViewModel"/>
+    <classEntry path="com.aristobot.flexmobile.renderers.ChatBubbleItemRenderer"/>
+    <classEntry path="com.aristobot.flexmobile.renderers.GameItemRenderer"/>
+    <classEntry path="com.aristobot.flexmobile.renderers.ListDataItemRenderer"/>
+    <classEntry path="com.aristobot.flexmobile.renderers.MessageItemRenderer"/>
+    <classEntry path="com.aristobot.flexmobile.renderers.OpponentChatBubbleItemRenderer"/>
+    <classEntry path="com.aristobot.flexmobile.renderers.SelectIconRenderer"/>
+    <classEntry path="com.aristobot.flexmobile.renderers.UserChatBubbleItemRenderer"/>
+    <classEntry path="com.aristobot.flexmobile.renderers.UserItemRenderer"/>
+    <classEntry path="com.aristobot.flexmobile.skins.AlertWindowSkin"/>
+    <classEntry path="com.aristobot.flexmobile.skins.ContainerBarSkin"/>
+    <classEntry path="com.aristobot.flexmobile.skins.RoboButtonSkin"/>
+    <classEntry path="com.aristobot.flexmobile.skins.RoboListSkin"/>
+    <classEntry path="com.aristobot.flexmobile.skins.SubNavigationBarSkin"/>
+    <classEntry path="com.aristobot.flexmobile.skins.ViewMenuItemSkin"/>
+    <classEntry path="com.aristobot.flexmobile.skins.ViewMenuSkin"/>
+    <classEntry path="com.aristobot.flexmobile.skins.ViewNavigatorBackgroundSkin"/>
+    <classEntry path="com.aristobot.flexmobile.util.DateUtil"/>
+    <classEntry path="com.aristobot.flexmobile.util.SplashScreenImage"/>
+    <classEntry path="com.aristobot.flexmobile.views.AccountSettings"/>
+    <classEntry path="com.aristobot.flexmobile.views.Chat"/>
+    <classEntry path="com.aristobot.flexmobile.views.FindOpponent"/>
+    <classEntry path="com.aristobot.flexmobile.views.ForgotPassword"/>
+    <classEntry path="com.aristobot.flexmobile.views.Game"/>
+    <classEntry path="com.aristobot.flexmobile.views.GamesList"/>
+    <classEntry path="com.aristobot.flexmobile.views.InviteAFriend"/>
+    <classEntry path="com.aristobot.flexmobile.views.Leaderboard"/>
+    <classEntry path="com.aristobot.flexmobile.views.MessageView"/>
+    <classEntry path="com.aristobot.flexmobile.views.MessagesList"/>
+    <classEntry path="com.aristobot.flexmobile.views.NewGame"/>
+    <classEntry path="com.aristobot.flexmobile.views.OpponentProfile"/>
+    <classEntry path="com.aristobot.flexmobile.views.OpponentsList"/>
+    <classEntry path="com.aristobot.flexmobile.views.Register"/>
+    <classEntry path="com.aristobot.flexmobile.views.SelectIcon"/>
+    <classEntry path="com.aristobot.flexmobile.views.SignIn"/>
+    <classEntry path="com.aristobot.flexmobile.views.UserProfile"/>
+    <classEntry path="com.aristobot.flexmobile.skins.ToggleSwitchSkin"/>
+    <classEntry path="com.aristobot.flexmobile.util.RuntimeDPIProvider"/>
+    <classEntry path="com.aristobot.flexmobile.components.RoboTextInput"/>
+    <classEntry path="com.aristobot.flexmobile.components.MobileApplication"/>
+  </includeClasses>
+  <includeResources>
+    <resourceEntry destPath="assets/styles/defaults.css" sourcePath="assets/styles/defaults.css"/>
+  </includeResources>
+  <namespaceManifests/>
+</flexLibProperties>

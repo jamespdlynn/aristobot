@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:components="com.aristobot.flexmobile.components.*"
+		title="Sign In">
+	
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.as3srserrvice.events.FaultEvent;
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.data.UserCredentials;
+			import com.aristobot.flexmobile.model.AlertManager;
+			import com.aristobot.flexmobile.model.ViewController;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			import spark.transitions.CrossFadeViewTransition;
+			
+			protected var srm:ServiceModel = ServiceModel.getInstance();
+			protected var vc:ViewController = ViewController.getInstance();
+			
+			protected var vm:ViewModel = ViewModel.getInstance();
+			
+			protected var username:String;
+
+			public function signIn():void
+			{
+				if (quickValidation())
+				{
+					signInButton.enabled = false;
+					
+					var creds:UserCredentials = UserCredentials.create(vm.deviceId, userInput.text, passwordInput.text, null, null, vm.pushNotificationToken);
+					srm.authenticationService.login(creds, signInSuccess, signInFault);
+					
+					AlertManager.displayLoadWindow("Authenticating...");
+				}
+			}
+			
+			override public function set data(value:Object):void
+			{
+				if (value && value is String){
+					username = value as String;
+				}
+				
+				if (userInput){
+					userInput.text = username;
+				}
+			}
+			
+			protected function quickValidation():Boolean
+			{
+				if (userInput.text.length == 0){
+					userInput.displayError("Enter a username");
+					userInput.setFocus();
+					return false;
+				}
+				else if (passwordInput.text.length == 0){
+					passwordInput.displayError("Enter a password");
+					passwordInput.setFocus();
+					return false;
+				}
+				
+				return true;
+			}
+			
+			private function signInSuccess(event:ResultEvent):void
+			{
+				vc.authenticationResultHandler(event);
+				signInButton.enabled = true;
+			}
+			
+			private function signInFault(event:FaultEvent):void
+			{
+				AlertManager.closeLoadWindow();
+				
+				if (event.faultCode == FaultEvent.LOGIN_FAILED){
+					AlertManager.displayNotificaitonWindow("Username or password is incorrect");
+				}
+				else{
+					srm.defaultFaultHandler(event);
+				}
+				
+				signInButton.enabled = true;
+				
+			}
+			
+			protected function navigateToRegisterView():void
+			{
+				navigator.popAll();
+				navigator.pushView(Register, null, null, new CrossFadeViewTransition());
+			}
+			
+			protected function navigateToForgotPasswordView():void
+			{
+				navigator.pushView(ForgotPassword);
+			}
+			
+	
+		]]> 
+	</fx:Script>
+	
+	<s:titleContent>
+		<s:Label id="titleLabel" text="{title}" styleName="viewTitle"/>
+	</s:titleContent>
+	
+	<s:layout>
+		<s:VerticalLayout gap="30" horizontalAlign="center" paddingLeft="30" paddingRight="30" paddingTop="30" paddingBottom="30"/>
+	</s:layout>
+	
+	<s:VGroup width="100%" gap="0" verticalAlign="middle">
+		<s:Label text="Sign in to your Aristobot Games{'\u2122'} account."/>
+		<s:HGroup gap="0" verticalAlign="middle">
+			<s:Label text="Don't have an account?"/>
+			<components:LinkButton label="Register Now." click="navigateToRegisterView()"/>
+		</s:HGroup>
+		
+	</s:VGroup>
+	
+	<components:FormTextInput width="100%" id="userInput" label="Username" text="{username}" returnKeyLabel="next" enter="passwordInput.setFocus()"/>
+	
+	<components:FormTextInput width="100%" id="passwordInput" label="Password" displayAsPassword="true"/>
+	
+	<s:Group width="100%">
+		<components:RoboButton id="signInButton" right="0" label="Sign In" click="signIn()" styleName="goButton"/>
+	</s:Group>
+	
+	<components:LinkButton label="Forgot your Username or Password?" click="navigateToForgotPasswordView()"/>
+
+</s:View>

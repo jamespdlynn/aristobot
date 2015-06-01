@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<windows:AlertWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark"
+					 xmlns:windows="com.aristobot.admin.windows.*"
+					 xmlns:components="com.aristobot.admin.components.*"
+					 currentState="normal"
+					 creationComplete="creationCompleteHandler(event)"
+					 width="500"
+					 closeEnabled="true">
+	
+	<windows:layout>
+		<s:VerticalLayout horizontalAlign="center" gap="25"/>
+	</windows:layout>
+	
+	
+	<fx:Metadata>
+		[Event(name="success", type="flash.events.Event")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[	
+			import com.aristobot.admin.managers.AlertManager;
+			import com.aristobot.as3srserrvice.events.FaultEvent;
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			
+			import mx.events.FlexEvent;
+
+			private var srm:ServiceModel = ServiceModel.getInstance();
+			
+			public function sendClick():void
+			{
+				if (quickValidation())
+				{
+					if (sendAllInput.selected)
+					{
+						AlertManager.displayConfirmWindow("You are about to send a push notification to EVERY authenticated user for the given application. Do you wish to continue?",
+							["Yes","No"], function (e:Event):void{
+								srm.adminService.sendPushNotificationToAll(100001, messageInput.text, paramsInput.text, sendSuccess, sendFault);
+								currentState = "sending";
+							});
+					}
+					else{
+						srm.adminService.sendPushNotificationToUser(userInput.text, 100001, messageInput.text, paramsInput.text, sendSuccess, sendFault);
+						currentState = "sending";
+					}
+					
+				}
+			}
+			
+			protected function quickValidation():Boolean
+			{
+				if (userInput.enabled && userInput.text.length == 0){
+					userInput.displayError("Please enter a username");
+					userInput.setFocus();
+					return false;
+				}
+				else if (messageInput.text.length == 0){
+					messageInput.displayError("Please enter a message");
+					messageInput.setFocus();
+					return false;
+				}
+				
+				return true;
+			}
+			
+			private function sendSuccess(event:ResultEvent):void
+			{
+				currentState = "normal";
+				AlertManager.displayNotificaitonWindow("Push Notification Successfully Sent!");
+				close();
+			}
+			
+			private function sendFault(event:FaultEvent):void
+			{
+				currentState = "normal";
+				srm.defaultFaultHandler(event);
+			}
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				userInput.setFocus();
+			}
+
+			
+		]]>
+	</fx:Script>
+	
+	<windows:states>
+		<s:State name="normal"/>
+		<s:State name="sending"/>
+	</windows:states>
+	
+	<s:Label width="100%" text="Send Push Notification" styleName="alertTitle"/>
+	
+	<components:FormItem width="100%" label="Application">
+		<s:DropDownList width="100%" requireSelection="true">
+			<s:dataProvider>
+				<s:ArrayList>
+					<fx:String>Chess Mates</fx:String>
+				</s:ArrayList>
+			</s:dataProvider>
+		</s:DropDownList>
+	</components:FormItem>
+	
+	
+	<s:Group width="100%">
+		<components:FormTextInput width="100%" id="userInput" label="Username" tabIndex="0" enabled="{!sendAllInput.selected}"/>
+		<s:CheckBox id="sendAllInput" label="Send to All" fontSize="16" top="0" right="0"/>
+	</s:Group>
+	
+	<components:FormTextInput width="100%" id="messageInput" label="Message" tabIndex="1" maxChars="100"/>
+	
+	<components:FormTextInput width="100%" id="paramsInput" label="Params (optional)"  tabIndex="2" maxChars="100"/>
+	
+	<s:Group width="100%">
+		<s:Button id="sendButton" right="0" label="Send" click="sendClick()" styleName="goButton" includeIn="normal" tabIndex="3"/>
+		<components:BusyIndicator right="20" includeIn="sending" width="44" height="44"/>
+	</s:Group>
+	
+	
+	
+</windows:AlertWindow>

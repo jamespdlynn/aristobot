@@ -1,0 +1,539 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace components "com.aristobot.flexmobile.components.*";
+@namespace spark "spark.skins.spark.*";
+@namespace windows "com.aristobot.flexmobile.components.windows.*";
+@namespace skins "com.aristobot.flexmobile.skins.*";
+@namespace renderers "com.aristobot.flexmobile.renderers.*";
+@namespace views "com.aristobot.flexmobile.views.*";
+@namespace local "*";
+
+global{
+	color: #F1F1F1;
+	textShadowColor:#000000;
+}
+
+s|ViewNavigator{
+	skinClass:ClassReference("com.aristobot.flexmobile.skins.ViewNavigatorBackgroundSkin");
+	backgroundColor: #000000;
+}
+
+s|View{
+	backgroundAlpha:0;
+}
+
+s|ViewMenu{
+	skinClass:ClassReference("com.aristobot.flexmobile.skins.ViewMenuSkin");	
+}
+
+
+s|ViewMenuItem{
+	skinClass:ClassReference("com.aristobot.flexmobile.skins.ViewMenuItemSkin");
+}
+
+s|ToggleSwitch{
+	skinClass:ClassReference("com.aristobot.flexmobile.skins.ToggleSwitchSkin");
+}
+
+s|TextInput{
+	skinClass:ClassReference("spark.skins.mobile.StageTextInputSkin");
+	contentBackgroundColor:#F1F1F1;
+	color:#333333;
+}
+
+s|TextArea{
+	skinClass:ClassReference("spark.skins.mobile.StageTextAreaSkin");
+	contentBackgroundColor:#F1F1F1;
+	color:#333333;
+}
+
+views|MessageView s|TextArea{
+	skinClass:ClassReference("spark.skins.mobile.TextAreaSkin");
+}
+
+windows|AlertWindow{
+	skinClass:ClassReference("com.aristobot.flexmobile.skins.AlertWindowSkin");
+	padding:25;
+	backgroundAlpha:0.9;
+	cornerRadius:12;
+	borderThickness:3;
+}
+
+windows|SettingsWindow{
+	backgroundAlpha:1;
+}
+
+components|RoboButton{
+	skinClass:ClassReference("com.aristobot.flexmobile.skins.RoboButtonSkin");
+	color:#F1F1F1;
+}
+
+
+s|ToggleButton{
+	skinClass:ClassReference("spark.skins.mobile.ButtonBarMiddleButtonSkin");
+	color:#F1F1F1;
+	fontWeight:bold;
+}
+
+s|BusyIndicator{
+	symbolColor:#F1F1F1;
+}
+
+
+
+renderers|GameItemRenderer{
+	message-style-name:gameMessageStyle;
+	date-style-name:gameDateStyle;
+}
+
+renderers|MessageItemRenderer{
+	message-style-name:messageLabelStyle;
+}
+
+renderers|ChatBubbleItemRenderer{
+	dateStyleName:chatDateStyle;
+	messageStyleName:chatMessageStyle;
+}
+
+renderers|UserItemRenderer{
+	record-style-name:ratingsStyle;
+	dateStyleName:opponentDateStyle;
+}
+
+
+components|CircleRepresenter{
+	redMultiplier:2;
+	greenMultiplier:0.5;
+	blueMultiplier:0.5;
+}
+
+components|LinkButton{
+	color:#4185F3;
+}
+
+views|MessageView{
+	linkColor:#4185F3;
+}
+
+.viewTitle{
+	fontWeight:bold;
+}
+
+.debug .viewTitle{
+	color: #41AF0A;
+}
+
+.username{
+	fontWeight:bold;
+}
+
+.goButton{
+	chromeColor:#006005;
+	color:#F1F1F1;
+}
+
+.stopButton{
+	chromeColor:#820909;
+	color:#F1F1F1;
+}
+
+.specialButton{
+	chromeColor:#1A6684;
+	color:#F1F1F1;
+}
+
+.gameDateStyle{
+	font-style:italic;
+	color:#9F9F9F;
+}
+
+.opponentDateStyle{
+	font-style:italic;
+	color:#9F9F9F;
+}
+
+.chatDateStyle{
+	fontWeight:bold;
+	color:#F1F1F1;
+}
+
+.chatMessageStyle{
+	font-size:22;
+	color:#333333;
+}
+
+.formLabel{
+	color:#F1F1F1;
+	font-weight:bold;
+}
+
+.errorLabel{
+	color:#BF0B0B;
+	font-weight:bold;
+}
+
+.messageSubject{
+	fontWeight:bold;
+}
+
+.level1{
+	color:#F1F1F1;
+}
+
+.level2{
+	color:#1EDC16;
+}
+
+.level3{
+	color:#0070B9;
+}
+
+.level4{
+	color:#A335AE;
+}
+
+
+
+
+@media (application-dpi:160), (application-dpi:240)
+{
+	global{
+		fontSize:22;
+	}
+	
+	windows|AlertWindow{
+		fontSize:20;
+		padding:25;
+		cornerRadius:6;
+		borderThickness:3;
+	}
+	
+	renderers|ListDataItemRenderer{
+		fontSize:28;
+		paddingTop:15;
+		paddingBottom:15;
+		verticalGap:15;
+		horizontalGap:15;
+	}
+	
+	s|ToggleSwitch{
+		fontSize:24;
+	}
+	
+	
+	renderers|GameItemRenderer components|RoboButton{
+		fontSize:16;
+	}
+	
+	
+	renderers|ChatBubbleItemRenderer{
+		paddingTop:25;
+		paddingBottom:25;
+	}
+	
+	components|GameMessageBar .messageBarLabel{
+		fontSize:22;
+		paddingTop:9;
+		paddingBottom:9;
+	}
+	
+	
+	components|GameActionBar{
+		fontSize:21;
+	}
+	
+	components|GameSubmitBar{
+		padding:10;
+	}
+	
+	s|ToggleButton{
+		fontSize:20;
+	}
+	
+	.smallText{
+		font-size:18;
+	}
+	
+	.viewTitle{
+		font-size:28;
+	}
+	
+	
+	
+	.username{
+		fontSize:29;
+	}
+	
+	.userRecord{
+		amount-font-size:30;
+		label-font-size:17;
+		paddingRight:8;
+		horizontalGap:8;
+	}
+	
+	.messageLabelStyle{
+		font-size:26;
+	}
+	
+	.gameDateStyle{
+		font-size:16;
+	}
+	
+	.opponentDateStyle{
+		font-size:16;
+	}
+	
+	.gameMessageStyle{
+		font-size:18;
+	}
+	
+	.chatDateStyle{
+		fontSize:17;
+		fontWeight:bold;
+	}
+	
+	.chatMessageStyle{
+		font-size:22;
+	}
+	
+	.formLabel{
+		fontSize:19;
+		font-weight:bold;
+	}
+	
+	.errorLabel{
+		fontSize:19;
+		font-weight:bold;
+	}
+	
+	
+	components|LinkButton{
+		fontSize:20;
+	}
+	
+	
+	.messageSubject{
+		fontWeight:bold;
+		fontSize:28;
+	}
+	
+	.messageBody{
+		fontWeight:normal;
+		fontSize:24;
+	}
+	
+	.ratingsStyle{
+		amount-font-size:30;
+		label-font-size:14;
+	}
+	
+	.recordStyle{
+		amount-font-size:28;
+		label-font-size:14;
+		horizontalGap:10;
+	}
+	
+	
+	.alertTitle{
+		fontSize:28;
+		fontWeight:bold;
+	}
+	
+	.alertLabel{
+		fontSize:24;
+		fontWeight:bold;
+	}
+	
+	windows|SettingsWindow components|RoboIconButton{
+		fontSize:24;
+		fontWeight:bold;
+	}
+	
+	.alertSubLabel{
+		fontSize:21;
+	}
+	
+	.iconNameLabel{
+		fontSize:26;
+		fontWeight:normal;
+	}
+	
+	.rewardLabel{
+		fontSize:14;
+		fontWeight:bold;
+	}
+	
+	s|ViewMenuItem{
+		fontSize:20;
+	}
+	
+}
+
+
+@media (application-dpi: 320)
+{
+	global{
+		fontSize:27;
+	}
+	
+	.smallText{
+		fontSize:22;
+	}
+	
+	.viewTitle{
+		fontSize:32;
+	}
+	
+	s|ToggleSwitch{
+		fontSize:32;
+	}
+	
+	windows|AlertWindow{
+		fontSize:25;
+		padding:30;
+		borderThickness:3;
+	}
+	
+	.username{
+		paddingLeft:15;
+		fontSize:36;
+	}
+	
+	.userRecord{
+		amount-font-size:36;
+		label-font-size:24;
+		paddingRight:20;
+		horizontalGap:14;
+	}
+	
+	
+	s|TextInput
+	s|TextArea{
+		paddingBottom:14;
+		paddingTop:14;
+	}
+	
+	renderers|ListDataItemRenderer{
+		fontSize:30;
+		paddingLeft:20;
+		paddingRight:25;
+		horizontalGap:25;
+	}
+	
+	.formLabel{
+		fontSize:21;
+		font-weight:bold;
+	}
+	
+	.errorLabel{
+		fontSize:21;
+		font-weight:bold;
+	}
+	
+	components|LinkButton{
+		fontSize:23;
+	}
+	
+	s|ToggleButton{
+		fontSize:22;
+	}
+	
+	
+	.gameDateStyle{
+		font-size:18;
+	}
+	
+	.opponentDateStyle{
+		font-size:18;
+	}
+	
+	.gameMessageStyle{
+		font-size:20;
+	}
+	
+	.recordStyle{
+		amount-font-size:30;
+		label-font-size:18;
+		horizontalGap:18;
+	}
+	
+	.ratingsStyle{
+		label-font-size:18;
+		amount-font-size:32;
+		
+	}
+	
+	.messageLabelStyle{
+		font-size:28;
+		color:#F1F1F1;
+	}
+	
+	components|GameMessageBar .messageBarLabel{
+		fontSize:27;
+		paddingTop:14;
+		paddingBottom:14;
+	}
+	
+	components|GameActionBar{
+		fontSize:27;
+	}
+	
+	components|GameSubmitBar{
+		padding:20;
+	}
+	
+	
+	.alertTitle{
+		fontSize:32;
+		fontWeight:bold;
+	}
+	
+	.alertLabel{
+		fontSize:28;
+		fontWeight:bold;
+	}
+	
+	windows|SettingsWindow components|RoboIconButton{
+		fontSize:28;
+		fontWeight:bold;
+	}
+	
+	.alertSubLabel{
+		fontSize:25;
+	}
+	
+	.iconNameLabel{
+		fontSize:28;
+		fontWeight:normal;
+	}
+	
+	.chatDateStyle{
+		fontSize:19;
+		fontWeight:bold;
+	}
+	
+	.chatMessageStyle{
+		font-size:24;
+	}
+	
+	
+	.optionButton{
+		paddingTop:10;
+		paddingBottom:10;
+		paddingLeft:100;
+		paddingRight:100;
+	}
+	
+	.rewardLabel{
+		fontSize:18;
+		fontWeight:bold;
+	}
+	
+	s|ViewMenuItem{
+		fontSize:26;
+	}
+}
+

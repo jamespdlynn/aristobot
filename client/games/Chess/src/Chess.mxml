@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:MobileApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+							  xmlns:s="library://ns.adobe.com/flex/spark"
+							  xmlns:components="com.aristobot.flexmobile.components.*"
+							  appIcon="@Embed(source='/chess_assets/images/app_icon.png')"
+							  title="Chess Chaps"
+							  splashScreenImage="com.aristobot.flexmobile.util.SplashScreenImage"
+							  runtimeDPIProvider="com.aristobot.flexmobile.util.RuntimeDPIProvider"
+							  initialize="init(event)">
+	
+	<fx:Style source="assets/styles/defaults.css"/>
+	<fx:Style source="chess_assets/styles/chess.css"/>
+	
+	<fx:Script> 
+		<![CDATA[
+			import com.aristobot.chess.ChessBoard;
+			import com.aristobot.flexmobile.model.ViewController;
+			
+			import mx.events.FlexEvent;
+			
+			protected static const API_KEY:String = "22064417b16a4053b517efc39f7bfe12";
+			
+			protected function init(event:FlexEvent):void{
+				ViewController.getInstance().setUp(this, API_KEY, this.appIcon, new ChessBoard());
+			}
+			
+		]]>
+	</fx:Script> 
+	
+	
+</components:MobileApplication>

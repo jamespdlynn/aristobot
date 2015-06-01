@@ -1,0 +1,44 @@
+.faq-section-title{
+	width:100%;
+	font-size:26px;
+	font-weight:bold;
+	border-bottom:solid 2px;
+	line-height:1em;
+	margin-bottom:25px;
+}
+
+.faq-section{
+	padding-left:15px;
+	margin-bottom:40px;
+}
+	
+
+.question{
+	margin-top:25px;
+	margin-bottom:5px;
+	font-size:21px;
+	font-weight:bold;
+	cursor:pointer;
+}
+
+.question.closed:before{
+	float:left;
+	content:url(/images/triangle_right.png);
+	margin-right:10px;
+}
+
+.question.open:before{
+	float:left;
+	content:url(/images/triangle_down.png);
+	margin-right:10px;
+}
+
+
+.question:hover{
+	color:#7A7A7A;
+}
+
+.answer{
+	padding-left:26px;
+	margin-bottom:20px;
+}

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<windows:AlertWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:components="com.aristobot.flexmobile.components.*" xmlns:windows="com.aristobot.admin.windows.*">
+	
+	<windows:layout>
+		<s:VerticalLayout horizontalAlign="center" gap="25"/>
+	</windows:layout>
+	
+	
+	<fx:Metadata>
+		[Event(name="ok", type="flash.events.Event")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[	
+			import mx.events.FlexEvent;
+			public static const OK:String = "ok";
+			
+			
+			[Bindable]
+			private var _label:String;
+			public function set label(value:String):void
+			{
+				_label = value;
+			}
+			
+			protected function okClick():void
+			{
+				close();
+				dispatchEvent(new Event(OK));
+			}
+			
+			
+		]]>
+	</fx:Script>
+
+	
+	<s:Label id="alertLabel" width="100%" textAlign="center" text="{_label}" styleName="alertLabel"/>
+	<s:Button id="alertButton" label="Ok" click="okClick()"/>
+	
+</windows:AlertWindow>

@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" 
+		xmlns:components="com.aristobot.flexmobile.components.*" 
+		xmlns:mx="library://ns.adobe.com/flex/mx"
+		addedToStage="viewAddedHandler()"
+		title="Register">
+	
+
+	
+	<fx:Declarations>
+		<mx:EmailValidator id="emailValidator" source="{emailAddressInput}" property="text"/>
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.as3srserrvice.events.FaultEvent;
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.data.UserCredentials;
+			import com.aristobot.flexmobile.data.RegistrationCredentials;
+			import com.aristobot.flexmobile.model.ActionContentManager;
+			import com.aristobot.flexmobile.model.AlertManager;
+			import com.aristobot.flexmobile.model.ViewController;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			import spark.transitions.CrossFadeViewTransition;
+			
+			private var srm:ServiceModel = ServiceModel.getInstance();
+			
+			private var vc:ViewController = ViewController.getInstance();
+			
+			private var registrationCreds:RegistrationCredentials = new RegistrationCredentials();
+			
+			private var vm:ViewModel = ViewModel.getInstance();
+			
+			
+			protected function viewAddedHandler():void
+			{
+				if (navigator.poppedViewReturnedObject && navigator.poppedViewReturnedObject.object is RegistrationCredentials){
+					registrationCreds = navigator.poppedViewReturnedObject.object as RegistrationCredentials;
+				}
+			}
+			
+			protected function selectIconClick():void
+			{					
+				navigator.pushView(SelectIcon, registrationCreds)
+			}
+			
+			public function register():void
+			{
+				if (quickValidation())
+				{
+					var creds:UserCredentials = UserCredentials.create(vm.deviceId, registrationCreds.username, registrationCreds.password, 
+						registrationCreds.emailAddress, registrationCreds.icon.iconKey, vm.pushNotificationToken);
+					
+					AlertManager.displayLoadWindow("Registering...");
+					srm.authenticationService.registerUser(creds, registrationSuccess, registrationFault);
+					
+				}
+			}
+			
+			protected function quickValidation():Boolean
+			{
+				
+				if (!validateUsername()){
+					userInput.setFocus();
+					return false;
+				}
+				else if (!validatePassword()){
+					passwordInput.clear();
+					confirmPasswordInput.clear();
+					passwordInput.setFocus();
+					return false;
+				}
+				else if (!validateConfirmPassword()){
+					confirmPasswordInput.clear();
+					confirmPasswordInput.setFocus();
+					return false;
+				}
+				else if (!validateEmailAddress()){
+					emailAddressInput.setFocus();
+					return false;
+				}
+				else if (!registrationCreds.icon){
+					iconInput.displayError("Select an icon");
+					return false;
+				}
+				
+				return true;
+			}
+			
+			protected function validateUsername():Boolean
+			{
+				registrationCreds.username = userInput.text;
+				
+				if (registrationCreds.username.length == 0){
+					userInput.displayError("Please enter a username");
+					return false;
+				}
+				else if (registrationCreds.username.length < 5){
+					userInput.displayError("Username too short");
+				}
+				
+				return true;
+			}
+			
+			protected function validatePassword():Boolean
+			{
+				registrationCreds.password = passwordInput.text;
+				
+				if (registrationCreds.password.length == 0){
+					passwordInput.displayError("Please enter a password");
+					return false;
+				}
+				else if (registrationCreds.password.length > 0 && registrationCreds.password.length < 6){
+					passwordInput.displayError("Password must be atleast 6 chars");
+					return false;
+				}
+				
+				return true;
+			}
+			
+			protected function validateConfirmPassword():Boolean
+			{
+				
+				registrationCreds.confirmPassword = confirmPasswordInput.text;
+				
+				if (registrationCreds.confirmPassword.length == 0){
+					confirmPasswordInput.displayError("Please confirm password");
+					return false;
+				}
+				if (registrationCreds.confirmPassword != registrationCreds.password){
+					confirmPasswordInput.displayError("Passwords do not match");
+					return false;
+				}
+				return true;
+			}
+			
+			protected function validateEmailAddress():Boolean
+			{
+				registrationCreds.emailAddress = emailAddressInput.text;
+				
+				if (registrationCreds.emailAddress.length == 0 ){
+					emailAddressInput.displayError("Please enter an email");
+					return false;
+				}
+				else if (emailValidator.validate().results){
+					emailAddressInput.displayError("Email is invalid");
+					return false;
+				}
+				
+				return true;
+			}
+			
+			protected function registrationSuccess(event:ResultEvent):void
+			{
+				AlertManager.closeLoadWindow();
+				vm.lastIconCount = vm.icons.length;
+				vc.authenticationResultHandler(event);
+			}
+			
+			protected function registrationFault(event:FaultEvent):void
+			{
+				ActionContentManager.stopLoading();
+				AlertManager.closeLoadWindow();
+				
+				switch (event.faultCode)
+				{
+					
+					case (FaultEvent.INVALID_USER_NAME):
+						
+						userInput.setFocus();
+						AlertManager.displayNotificaitonWindow("Username is invalid.");
+						break;
+					
+					case (FaultEvent.INVALID_PASSWORD):
+						
+						passwordInput.clear();
+						confirmPasswordInput.clear();
+						passwordInput.setFocus();
+						AlertManager.displayNotificaitonWindow("Password is invalid.");
+						break;
+					
+					case (FaultEvent.DUPLICATE_USER_NAME):
+						AlertManager.displayNotificaitonWindow("Username has been taken. Please try another.");
+						userInput.setFocus();
+						break;
+					
+					case (FaultEvent.DUPLICATE_EMAIL_ADDRESS):
+						AlertManager.displayNotificaitonWindow("Email Address has already been registered to an Aristobot Games account.");
+						emailAddressInput.setFocus();
+						break;
+					
+					default:
+						srm.defaultFaultHandler(event);
+						break;	
+				}
+				
+			}
+			
+			protected function navigateToSignInView():void
+			{
+				registrationCreds = new RegistrationCredentials();
+				navigator.popAll();
+				navigator.pushView(SignIn, null, null, new CrossFadeViewTransition);
+			}
+
+		]]>
+	</fx:Script>
+	
+	<s:titleContent>
+		<s:Label id="titleLabel" text="{title}" styleName="viewTitle"/>
+	</s:titleContent>
+	
+	<s:layout>
+		<s:VerticalLayout gap="30" horizontalAlign="center" paddingTop="30" paddingBottom="30" paddingLeft="30" paddingRight="30"/>
+	</s:layout>
+	
+	<s:VGroup width="100%" gap="0" verticalAlign="middle">
+		<s:Label text="Register for an Aristobot Games{'\u2122'} account."/>
+		<s:HGroup gap="0" verticalAlign="middle">
+			<s:Label text="Already have an account?"/>
+			<components:LinkButton label="Sign In." click="navigateToSignInView()"/>
+		</s:HGroup>
+	</s:VGroup>
+	
+
+	<components:FormTextInput width="100%" id="userInput" label="Username" 
+							  text="{registrationCreds.username}" maxChars="12"
+							  focusOut="validateUsername()" returnKeyLabel="next" enter="passwordInput.setFocus()"/>
+	
+	<components:FormTextInput width="100%" id="passwordInput" label="Password" displayAsPassword="true" 
+							  text="{registrationCreds.password}" maxChars="15"
+							  focusOut="validatePassword()" returnKeyLabel="next" enter="confirmPasswordInput.setFocus()"/>
+	
+	<components:FormTextInput width="100%" id="confirmPasswordInput" label="Confirm Password" displayAsPassword="true" 
+							  text="{registrationCreds.confirmPassword}" maxChars="15"
+							  focusOut="validateConfirmPassword()" returnKeyLabel="next" enter="emailAddressInput.setFocus()"/>
+	
+	<components:FormTextInput width="100%" id="emailAddressInput" label="Email" 
+							  text="{registrationCreds.emailAddress}" maxChars="45"
+							  focusOut="validateEmailAddress()" type="email" returnKeyLabel="next" enter="selectIconButton.setFocus(); selectIconClick();"/>
+	
+	<s:Group width="100%">
+
+		<components:FormItem id="iconInput" label="Icon" paddingBottom="0">
+			<s:Group click="selectIconClick()">
+				<components:RoboButton id="selectIconButton" label="Select" height="72" visible="{registrationCreds.icon == null}" bottom="0"/>
+				<s:BitmapImage id="iconImage" width="72" height="72" verticalCenter="0" source="{registrationCreds.icon.iconURL}" visible="{registrationCreds.icon != null}" contentLoader="{vm.iconCache}"/>
+			</s:Group>		
+		</components:FormItem>
+		
+		<components:RoboButton id="registerButton" label="Register" click="register()" right="0" bottom="0" styleName="goButton" height="72"/>
+		
+	</s:Group>
+	
+	
+</s:View>

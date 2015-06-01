@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:components="com.aristobot.flexmobile.components.*"
+		initialize="init()"
+		viewActivate="viewActivate()"
+		viewDeactivate="viewDeactivate()"
+		title="New Game" >
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.as3srserrvice.events.FaultEvent;
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.data.User;
+			import com.aristobot.flexmobile.data.IconListData;
+			import com.aristobot.flexmobile.model.AlertManager;
+			import com.aristobot.flexmobile.model.GameModel;
+			import com.aristobot.flexmobile.model.ImageManager;
+			import com.aristobot.flexmobile.model.SoundManager;
+			import com.aristobot.flexmobile.model.ViewController;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			import mx.collections.ArrayList;
+					
+			protected const randomOpponent:IconListData = new IconListData("*randomOpponent*", "Quick Match", ImageManager.GoIcon);
+			protected const findOpponent:IconListData = new IconListData("*findOpponent*", "Find Opponent", ImageManager.SearchIcon);			
+			
+			protected var srm:ServiceModel = ServiceModel.getInstance();
+			
+			protected var vc:ViewController = ViewController.getInstance();
+			
+			protected var vm:ViewModel = ViewModel.getInstance();
+			
+			protected var gm:GameModel = GameModel.getInstance();
+			
+			protected var modifiedOpponentList:ArrayList;
+			
+			protected function init():void
+			{
+				createModifiedOpponentList();
+			}
+			
+			protected function viewActivate():void
+			{
+				vm.addEventListener(ViewModel.OPPONENTS_CHANGED, createModifiedOpponentList, false, 0, true);
+				vc.resetList(opponentList);
+				
+				if (!srm.isAuthenticated() || !vc.dataLoaded){
+					vc.autologin();
+				}
+						
+			}
+			
+			protected function viewDeactivate():void
+			{
+				vm.removeEventListener(ViewModel.OPPONENTS_CHANGED, createModifiedOpponentList);
+			}
+			
+			protected function createModifiedOpponentList(event:Event=null):void
+			{
+				modifiedOpponentList = new ArrayList();
+				modifiedOpponentList.addItem(randomOpponent);
+				modifiedOpponentList.addItem(findOpponent);
+								
+				for each (var listData:IconListData in vm.opponentList.source){
+					modifiedOpponentList.addItem(listData);
+					if (modifiedOpponentList.length >= 6){
+						break;
+					}
+				}
+				
+				if (opponentList){
+					opponentList.dataProvider = modifiedOpponentList;
+				}
+				
+			}
+			
+			protected function changeHandler():void
+			{				
+				SoundManager.playSound(SoundManager.CLICK);
+				
+				var listData:IconListData = opponentList.selectedItem as IconListData;
+				
+				if (listData.key == findOpponent.key){
+					navigator.pushView(FindOpponent, true);
+				}
+				else if (listData.key == randomOpponent.key){
+					AlertManager.displayLoadWindow("Matching opponent...");
+					srm.opponentService.getRandomOpponent(addRandomResult, addRandomFault);
+				}
+				else if (listData.dataObj){
+					gm.createNewGame(listData.dataObj as User);
+				}
+				
+				vc.resetList(opponentList);
+								
+			}
+	
+			
+			protected function addRandomResult(result:ResultEvent):void
+			{
+				gm.createNewGame(result.resultObj as User);
+			}
+			
+			protected function addRandomFault(event:FaultEvent):void
+			{
+				if (event.faultCode == FaultEvent.UNABLE_TO_FIND_RANDOM_OPPONENT){
+					AlertManager.closeLoadWindow();
+					AlertManager.displayNotificaitonWindow("Unable to find a new opponent with a similar player rating.");
+				}
+				else{
+					srm.defaultFaultHandler(event);
+				}				
+			}
+			
+			
+		
+			
+				
+
+		]]>
+	</fx:Script>
+	
+	<s:navigationContent>
+		<components:RoboIconButton width="100%" height="100%" source="{ImageManager.BackIcon}" click="navigator.popView()"/>
+	</s:navigationContent>
+	
+	<s:titleContent>
+		<s:HGroup width="100%" verticalAlign="middle" gap="15">
+			<s:Label id="titleLabel" text="{title}" styleName="viewTitle"/>
+			<s:BitmapImage id="titleImage" width="40" height="40" smooth="true" source="{ImageManager.AddIcon}"/>
+		</s:HGroup>
+	</s:titleContent>
+
+	<s:List id="opponentList" width="100%" top="-1" bottom="0" dataProvider="{modifiedOpponentList}"
+			itemRenderer="com.aristobot.flexmobile.renderers.UserItemRenderer" change="changeHandler()"/>
+</s:View>

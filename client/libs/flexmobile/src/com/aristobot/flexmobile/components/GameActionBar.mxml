@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" xmlns:components="com.aristobot.flexmobile.components.*"
+		 preinitialize="initializeHandler()"
+		 creationComplete="creationCompleteHandler()"
+		 currentStateChange="creationCompleteHandler()"
+		 currentState="{gm.actionState}"
+		 cacheAsBitmap="true"
+		 skinClass="com.aristobot.flexmobile.skins.ContainerBarSkin">
+	
+	<fx:Metadata>
+		[Event(name="rematch", type="com.aristobot.flexmobile.events.GameEvent")]
+		[Event(name="refresh", type="com.aristobot.flexmobile.events.GameEvent")]
+		[Event(name="resign", type="com.aristobot.flexmobile.events.GameEvent")]
+		[Event(name="requestDraw", type="com.aristobot.flexmobile.events.GameEvent")]
+		[Event(name="cancel", type="com.aristobot.flexmobile.events.GameEvent")]
+		[Event(name="chat", type="com.aristobot.flexmobile.events.GameEvent")]
+
+		[Style(name="chromeColor", inherit="yes", type="uint")]
+	</fx:Metadata>
+	
+	<fx:Declarations>
+	
+		<s:ViewMenuItem id="chatButton" label="Chat"
+						click="chatClick(event)" icon="{ImageManager.ChatIcon}"/>
+		
+		<s:ViewMenuItem id="cancelGameButton" label="Cancel Game"
+						click="cancelClick(event)" icon="{ImageManager.DefeatIcon}"/>
+		
+		<s:ViewMenuItem id="requestDrawButton" label="Offer Draw"
+						click="requestDrawClick(event)"  icon="{ImageManager.DrawIcon}"/>
+		
+		<s:ViewMenuItem id="resignButton" label="Resign"
+						click="resignClick(event)" icon="{ImageManager.DefeatIcon}"/>
+		
+		<s:ViewMenuItem id="rematchButton" label="Rematch"
+						click="rematchClick(event)" icon="{ImageManager.GoIcon}"/>
+		
+		<s:ViewMenuItem id="replayButton" label="Replay" click="replayClick(event)"  icon="{ImageManager.ReplayIcon}" height="100%"/>
+		
+		<s:ViewMenuItem id="nudgeButton" label="Nudge" click="nudgeClick(event)"  icon="@Embed('/assets/images/point.png')" height="100%"/>
+			
+		
+		
+	</fx:Declarations>
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.as3srserrvice.model.Status;
+			import com.aristobot.flexmobile.model.AlertManager;
+			import com.aristobot.flexmobile.model.GameModel;
+			import com.aristobot.flexmobile.model.ImageManager;
+			import com.aristobot.flexmobile.model.SoundManager;
+			import com.aristobot.flexmobile.model.ViewController;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			import mx.core.DPIClassification;
+			
+			import spark.components.ViewMenuItem;
+			
+
+			protected var iconSize:Number;
+			
+			protected var buttonSize:Number;
+			
+			protected var padding:Number;			
+			
+			protected var vc:ViewController = ViewController.getInstance();
+			
+			protected var vm:ViewModel = ViewModel.getInstance();
+			
+			protected var gm:GameModel = GameModel.getInstance();
+			
+			protected var nudged:Boolean = false;
+			
+			
+			protected function initializeHandler():void
+			{
+				switch(vm.applicationDPI) 
+				{
+					case DPIClassification.DPI_320:
+					{
+						iconSize = 72;
+						buttonSize = 84;
+						padding=12;
+						break;
+					}
+					case DPIClassification.DPI_240:
+					{
+						iconSize = 48;
+						buttonSize = 68;
+						padding=9;
+						break;
+					}
+					case DPIClassification.DPI_160:
+					default:
+					{
+						iconSize = 32;
+						buttonSize = 48;
+						padding=6;
+					}
+				}
+			}
+			
+			protected function creationCompleteHandler():void
+			{
+				chatAlertIcon.x = opponentGroup.x + iconSize;
+				chatAlertIcon.y = opponentGroup.y - (3*iconSize/4);
+				chatButton.minHeight = this.height;
+			}
+	
+			protected function cancelClick(event:Event):void
+			{			
+				SoundManager.playSound(SoundManager.CLICK);
+				AlertManager.displayConfirmWindow("Are you sure you want to cancel this game?", ["Yes","No"], gm.cancelGame);	
+			}
+
+
+			protected function resignClick(event:Event):void
+			{						
+				SoundManager.playSound(SoundManager.CLICK);
+				
+				if (!gm.currentGameData.player.isTurn){
+					AlertManager.displayNotificaitonWindow("You cannot end the game when it is not currently your turn. However if your opponent does not make a move soon they will be automatically resigned.");
+				}
+				else{
+					AlertManager.displayConfirmWindow("Are you sure you want to resign from this game? This will be recorded as a loss on your record.", 
+						["Yes","No"], gm.resign);
+				}
+				
+			}
+			
+			protected function rematchClick(event:Event):void
+			{				
+				SoundManager.playSound(SoundManager.CLICK);
+				gm.rematch();
+			}
+			
+			protected function replayClick(event:Event):void
+			{				
+				SoundManager.playSound(SoundManager.CLICK);
+				gm.loadReplay()
+			}
+			
+			protected function nudgeClick(event:Event):void
+			{
+				
+				SoundManager.playSound(SoundManager.CLICK);
+				gm.nudge();
+				nudged = true;
+			}
+			
+			
+			protected function requestDrawClick(event:Event):void
+			{
+				
+				SoundManager.playSound(SoundManager.CLICK);
+				AlertManager.displayConfirmWindow("Make an offer to your opponent to end this game in a draw?", 
+					["Yes","No"], gm.requestDraw);				
+			}
+			
+			
+			protected function chatClick(event:MouseEvent):void
+			{
+				SoundManager.playSound(SoundManager.CLICK);
+				gm.chat();
+				
+			}
+			
+			protected function launchOptionsWindow():void
+			{		
+				var viewMenuItems:Vector.<ViewMenuItem> =  new Vector.<ViewMenuItem>;
+				
+				if (gm.currentGameData.gameStatus == Status.GAME_INITIALIZING){
+					viewMenuItems.push(cancelGameButton);
+				}
+								
+				if (gm.currentGameData.gameStatus == Status.GAME_RUNNING){
+					if (!gm.currentGameData.player.isTurn && !nudged) viewMenuItems.push(nudgeButton);
+					viewMenuItems.push(resignButton);
+					viewMenuItems.push(requestDrawButton);
+				}
+				
+				if(gm.currentGameData.gameStatus == Status.GAME_FINISHED){
+					viewMenuItems.push(rematchButton);
+					viewMenuItems.push(replayButton);
+				}
+				
+				viewMenuItems.push(chatButton);
+				
+				vc.navigator.activeView.viewMenuItems = viewMenuItems;
+				vc.application.viewMenuOpen = true;
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="normal"/>
+		<s:State name="cycle"/>
+		<s:State name="gameOver"/>
+		<s:State name="replay"/>
+	</s:states>
+	
+	  
+	<s:HGroup id="playerGroup" height="100%" verticalAlign="middle" paddingTop="{padding}" paddingBottom="{padding}" paddingLeft="{padding}" gap="{padding}" visible.cycle="false" visible.replay="false">
+		
+		<s:HGroup id="userGroup" gap="4" verticalAlign="middle">
+			<s:BitmapImage id="userIcon" source="{gm.currentGameData.player.icon.iconURL}" contentLoader="{vm.iconCache}" height="{iconSize}" width="{iconSize}" smooth="true"/>
+			<s:Label text="{gm.currentGameData.player.username}"/>
+		</s:HGroup>
+		
+		<s:HGroup id="opponentGroup" gap="4" verticalAlign="middle" click="chatClick(event)">
+			<s:BitmapImage id="opponentIcon" source="{gm.currentGameData.opposingPlayer.icon.iconURL}"  contentLoader="{vm.iconCache}" height="{iconSize}" width="{iconSize}" smooth="true"/>
+			<s:Label text="{gm.currentGameData.opposingPlayer.username}"/>
+		</s:HGroup>
+		
+	</s:HGroup>
+	
+	<components:CircleRepresenter width="100%" height="100%" numItems="{gm.maxMoveIndex+1}" index="{gm.currentMoveIndex}" verticalAlign="middle" horizontalAlign="center"
+								  paddingLeft="10" paddingRight="{10+buttonGroup.width}" gap="{padding*1.5}" includeIn="cycle"/>
+			
+	<s:HGroup id="buttonGroup" height="100%" horizontalAlign="right" right="0" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}" gap="{padding/2}" excludeFrom="replay">
+		
+		<components:RoboButton id="backButton" icon="{ImageManager.BackIcon}" minWidth="0"
+							   enabled="{gm.buttonEnabled &amp;&amp; gm.currentMoveIndex > 0}"
+							   click="gm.backClick()" width="{buttonSize}" height="{buttonSize}"
+							   includeIn="normal,cycle"/>
+		
+		<components:RoboButton id="replayButton2" icon="{ImageManager.ReplayIcon}" minWidth="0"
+							   click="gm.loadReplay()" width="{buttonSize}" height="{buttonSize}"
+							   includeIn="gameOver"/>
+		
+		
+		<components:RoboButton id="forwardButton" icon="{ImageManager.ForwardIcon}" minWidth="0"
+							   enabled="{gm.buttonEnabled &amp;&amp; gm.maxMoveIndex > gm.currentMoveIndex}"
+							   click="gm.forwardClick()" width="{buttonSize}" height="{buttonSize}"
+							   includeIn="cycle"/>
+		
+		<components:RoboButton id="optionsButton" icon="{ImageManager.MenuIcon}" minWidth="0" enabled="{gm.buttonEnabled}"
+							   visible="{gm.currentMoveIndex >= gm.maxMoveIndex}"
+							   click="launchOptionsWindow()" width="{buttonSize}" height="{buttonSize}"
+							   includeIn="normal, gameOver"/>
+		
+		
+	</s:HGroup>
+	
+
+	
+	<s:HGroup id="replayGroup" width="100%" height="100%" paddingLeft="8" paddingRight="8" paddingTop="8" paddingBottom="8" horizontalAlign="center" verticalAlign="middle" gap="0" includeIn="replay">
+		
+		<components:RoboIconButton id="rewindButton" width="100%" source="{ImageManager.RewindIcon}" click="gm.cycleToBeginning()" enabled="{gm.currentMoveIndex > 0}" buttonVisible="false" />
+		<components:RoboIconButton id="stepBackButton" width="100%" source="{ImageManager.BackIcon}" click="gm.cyclePrevious()" enabled="{gm.currentMoveIndex > 0}" buttonVisible="false"  />
+		<s:Group width="100%">
+			<components:RoboIconButton id="playButton" width="100%"  source="{ImageManager.PlayIcon}" visible="{!gm.isReplayPlaying}" 
+									   enabled="{gm.maxMoveIndex > gm.currentMoveIndex}" click="gm.startReplay()" buttonVisible="false" iconSize="{iconSize}"/>
+			
+			<components:RoboIconButton id="pauseButton"  width="100%"  source="{ImageManager.PauseIcon}" visible="{gm.isReplayPlaying}" 
+									   click="gm.pauseReplay()" buttonVisible="false" iconSize="{iconSize}"/>
+		</s:Group>
+		<components:RoboIconButton id="stepForwardButton" width="100%"  source="{ImageManager.ForwardIcon}" click="gm.cycleNext()" enabled="{gm.maxMoveIndex > gm.currentMoveIndex}" buttonVisible="false" />
+		<components:RoboIconButton id="fastForwardButton" width="100%"  source="{ImageManager.FastForwardIcon}" click="gm.cycleToEnd()" enabled="{gm.maxMoveIndex > gm.currentMoveIndex}" buttonVisible="false"  />
+		
+	</s:HGroup>
+	
+	<s:Image id="chatAlertIcon" source="{ImageManager.ChatAlertIcon}" 
+			 width="{iconSize}" height="{iconSize}" smooth="true"
+			 click="chatClick(event)"
+			 visible="{gm.currentGameData.conversation.hasUnreadMessages}" includeIn="normal, gameOver"/>	
+	
+	
+	
+</s:SkinnableContainer>

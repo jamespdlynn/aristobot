@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark"
+		  gap="5" xmlns:components="com.aristobot.flexmobile.components.*"
+		  initialize="initializeHandler(event)">
+	
+	<fx:Metadata>
+		[Event(name="change", type="flash.events.Event")]
+		[Event(name="enter", type="mx.events.FlexEvent")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.flexmobile.model.AlertManager;
+			import com.aristobot.flexmobile.model.ImageManager;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			import mx.events.FlexEvent;
+			
+			import pl.mllr.extensions.contactEditor.ContactEditor;
+			import pl.mllr.extensions.contactEditor.ContactEditorEvent;
+			
+			
+			private static var contactEditor:ContactEditor;
+			
+			[Bindable]
+			private static var contactSupported:Boolean = true;
+			
+			private var _text:String = "";
+			[Bindable]
+			public function get text():String{
+				return _text;
+			}
+			public function set text(value:String):void{
+				_text = (value) ? value : "";
+			}
+			
+			
+			private var _prompt:String = "Enter Email Address";
+			[Bindable]
+			public function get prompt():String{
+				return _prompt;
+			}
+			public function set prompt(value:String):void{
+				_prompt= value;
+			}
+			
+			
+			protected function initializeHandler(event:FlexEvent):void
+			{
+				if (!contactEditor && contactSupported){
+					
+					if (ContactEditor.isSupported){
+						try{
+							contactEditor = new ContactEditor();
+						}catch (e:Error){
+							trace(e.message);
+							contactSupported = false;
+						}
+					}else{
+						contactSupported = false;
+					}
+				}
+				
+			}
+			
+			protected function pickContact():void{
+				
+				try{
+					contactEditor.pickContact(ContactEditor.ANDORID_CONTACT_PICK_BY_COMPOSITENAME);
+					contactEditor.addEventListener(ContactEditorEvent.CONTACT_SELECTED, contactSelected);
+					contactEditor.addEventListener(StatusEvent.STATUS, statusHandler);
+				}catch (e:Error){
+					trace(e.message);
+					AlertManager.displayNotificaitonWindow("Unable to select contact");
+				}
+			}
+			
+			
+			
+			protected function contactSelected(event:ContactEditorEvent):void{
+				
+				contactEditor.removeEventListener(ContactEditorEvent.CONTACT_SELECTED, contactSelected);
+				contactEditor.removeEventListener(StatusEvent.STATUS, statusHandler);
+				
+				var contact:Object = contactEditor.getContactDetails(event.recordId);
+				
+				
+				if (contact){
+					if (contact.emails && contact.emails is Array && contact.emails.length > 0){
+						emailInput.text = contact.emails[0];
+						dispatchEvent(new FlexEvent(FlexEvent.ENTER));
+					}else if (contact.email && contact.email.length) {
+						emailInput.text = contact.email;
+						dispatchEvent(new FlexEvent(FlexEvent.ENTER));
+					}else{
+						AlertManager.displayNotificaitonWindow("No email addresses associated with contact");
+					}
+				}else{
+					AlertManager.displayNotificaitonWindow("Unable to select contact");
+				}
+				
+			}
+			
+			protected function statusHandler(event:StatusEvent):void{
+				trace(event.type+"   "+event.code+"  "+event.level);
+				AlertManager.displayNotificaitonWindow("Unable to select contact");
+				
+				contactEditor.removeEventListener(ContactEditorEvent.CONTACT_SELECTED, contactSelected);
+				contactEditor.removeEventListener(StatusEvent.STATUS, statusHandler);
+			}
+			
+			
+			
+			[Inspectable(category="General",enumeration="default,done,go,next,search",defaultValue="default")]
+			public function get returnKeyLabel():String{
+				return emailInput.returnKeyLabel;
+			}
+			public function set returnKeyLabel(value:String):void{
+				emailInput.returnKeyLabel = value;
+			}
+			
+			
+			
+		]]>
+	</fx:Script>
+
+	<components:RoboButton id="conctactButton" icon="{ImageManager.DefaultUserIcon}" minWidth="0" enabled="{contactSupported}"
+						   click="pickContact()" width="{emailInput.height+2}" height="{emailInput.height+2}"/>
+	
+	<components:RoboTextInput id="emailInput" width="100%" softKeyboardType="email" prompt="{prompt}" text="@{text}" change="dispatchEvent(event)" enter="dispatchEvent(event)"/>
+	
+	
+</s:HGroup>

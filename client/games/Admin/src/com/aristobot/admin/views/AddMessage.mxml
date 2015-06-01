@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:NavigatorContent xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					xmlns:s="library://ns.adobe.com/flex/spark" 
+					xmlns:mx="library://ns.adobe.com/flex/mx"
+					xmlns:components="com.aristobot.admin.components.*"
+					addedToStage="init()"
+					removedFromStage="destruct()"
+					show="init()"
+					hide="destruct()"
+					enabled="{!loading}"
+					implements="com.aristobot.admin.managers.IView">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.admin.managers.AlertManager;
+			import com.aristobot.admin.managers.IView;
+			import com.aristobot.as3srserrvice.events.FaultEvent;
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.data.SystemMessage;
+			
+			
+			protected var srm:ServiceModel = ServiceModel.getInstance();
+			
+			[Bindable]
+			protected var loading:Boolean;
+			
+			
+			
+			public function init(event:Event=null):void
+			{
+				if (editor){
+					editor.selectedIndex = 0;
+				}
+			}
+			
+			public function destruct(event:Event=null):void
+			{	
+				loading = false;
+			}
+			
+			protected function sendClick():void
+			{
+				if (editor.quickValidate())
+				{
+					if (sendAsEmail.selected){
+						AlertManager.displayConfirmWindow("You have selected to also send this message as an email. Please make sure this message is of VERY HIGH importance as it will instantly send and potentially spam all Aristobot Games users active or otherwise. " +
+							"Also you can also not delete or edit the email contents once it is sent. Are you sure you wish to continue?", ["Yes","No"], sendMessage);
+					}
+					else{
+						sendMessage();
+					}
+				}
+	
+			}
+		
+			protected function sendMessage(event:Event=null):void
+			{
+				srm.messageService.sendSystemMessage(editor.message, sendAsEmail.selected, sendResult, sendFault);
+				loading = true;
+			}
+			
+			protected function sendResult(event:ResultEvent):void
+			{
+				loading = false;
+				
+				editor.message = new SystemMessage();
+				sendAsEmail.selected = false;
+				
+				AlertManager.displayNotificaitonWindow("Message Successfully Sent!");
+				init();
+			}
+
+			protected function sendFault(event:FaultEvent):void
+			{
+				loading = false;
+				srm.defaultFaultHandler(event);
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	<s:HGroup gap="3" top="5" right="30" verticalAlign="middle">
+		<s:CheckBox  id="sendAsEmail" scaleX="2" scaleY="2"/>
+		<s:Label text="Send as Email"/>
+	</s:HGroup>
+	
+	
+	<components:MessageEditor id="editor" left="30" right="30" top="30" bottom="110"/>
+	
+	
+	
+	<s:SkinnableContainer width="100%" height="80" bottom="0" skinClass="com.aristobot.admin.skins.ContainerBarSkin">
+		
+		
+		<s:HGroup width="100%" height="100%" paddingRight="30" gap="10" verticalAlign="middle" horizontalAlign="right" >
+			
+			<components:BusyIndicator id="loadSpinner" width="40" height="40" visible="{loading}"/>
+			
+			<s:Button label="Send Message" styleName="goButton" click="sendClick()" enabled="{editor.selectedIndex ==1}"/>
+		</s:HGroup>
+		
+		
+	</s:SkinnableContainer>
+	
+</s:NavigatorContent>

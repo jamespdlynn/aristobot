@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:components="com.aristobot.flexmobile.components.*"
+		initialize="init()"
+		viewActivate="viewActivate()" 
+		viewDeactivate="viewDeactivate()"
+		title="Games" >
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.as3srserrvice.events.FaultEvent;
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.as3srserrvice.model.Status;
+			import com.aristobot.data.GameData;
+			import com.aristobot.flexmobile.data.IconListData;
+			import com.aristobot.flexmobile.model.ActionContentManager;
+			import com.aristobot.flexmobile.model.AlertManager;
+			import com.aristobot.flexmobile.model.GameModel;
+			import com.aristobot.flexmobile.model.ImageManager;
+			import com.aristobot.flexmobile.model.SoundManager;
+			import com.aristobot.flexmobile.model.ViewController;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.ArrayList;
+			
+			import spark.events.IndexChangeEvent;
+			
+			protected var srm:ServiceModel = ServiceModel.getInstance();
+				
+			protected var vm:ViewModel = ViewModel.getInstance();
+			
+			protected var gm:GameModel = GameModel.getInstance();
+			
+			protected var vc:ViewController = ViewController.getInstance();
+			
+			protected var modifiedGamesList:ArrayCollection;
+			
+			protected var addItem:IconListData;
+						
+			protected var tempGameData:GameData;
+			
+			protected var activated:Boolean;
+						
+			protected function init():void
+			{
+				createModifiedGamesList();
+			}
+			
+			protected function viewActivate():void
+			{
+				vm.addEventListener(ViewModel.GAMES_CHANGED, createModifiedGamesList, false, 0, true);
+				resetList();
+				activated = true;
+				
+				if (!srm.isAuthenticated() || !vc.dataLoaded){
+					vc.autologin();
+				}
+				else{
+					ActionContentManager.startLoading();
+					srm.gameService.getAllGameUpdates(function (event:ResultEvent):void{
+						ActionContentManager.stopLoading();
+						vm.updateGamesResult(event);
+						
+					});
+				}
+
+			}
+			
+			
+			
+			protected function viewDeactivate():void
+			{ 				
+				vm.removeEventListener(ViewModel.GAMES_CHANGED, createModifiedGamesList);
+				ActionContentManager.stopLoading();
+				
+				tempGameData = null;
+				activated = false;
+			}
+			
+			protected function createModifiedGamesList(event:Event=null):void
+			{
+				var modifiedGamesList:ArrayList = new ArrayList();
+				modifiedGamesList.addItem(vm.newGameOption);
+				
+				if (vm.gameList){
+					for each (var listData:IconListData in vm.gameList.source){
+						modifiedGamesList.addItem(listData);
+					}
+				}	
+					
+				gameList.dataProvider = modifiedGamesList;
+			}
+			
+			protected function changeHandler(event:IndexChangeEvent=null):void
+			{		
+				var listData:IconListData = gameList.selectedItem as IconListData;
+				
+				if (!listData){
+					event.stopImmediatePropagation();
+					return;
+				}
+				
+				SoundManager.playSound(SoundManager.CLICK);
+
+				if (listData.key == vm.newGameOption.key){
+					navigator.pushView(NewGame);
+				}
+				else if (listData.dataObj)
+				{
+					
+					var gameData:GameData = listData.dataObj as GameData;					
+					
+					if (gameData.player.playerStatus == Status.PLAYER_INVITED){
+						tempGameData = gameData;
+						AlertManager.displayConfirmWindow(listData.message, ["Accept","Decline"], acceptClickHandler, declineClickHandler, true);
+						resetList();
+					}
+					else{
+						srm.gameService.getGame(gameData.gameKey, getGameResult, faultHandler);
+						AlertManager.displayLoadWindow("Loading Game...");
+					}
+					
+				}
+			}
+			
+			protected function acceptClickHandler(event:Event):void
+			{
+				srm.gameService.acceptGame(tempGameData.gameKey, acceptGameResult, faultHandler);
+				AlertManager.displayLoadWindow("Loading Game...");
+			}
+							
+			protected function declineClickHandler(event:Event):void
+			{
+				srm.gameService.declineGame(tempGameData.gameKey, null, faultHandler);
+				vm.removeGame(tempGameData);
+				
+			}
+			
+			protected function acceptGameResult(event:ResultEvent):void
+			{				
+				var gameData:GameData = event.resultObj as GameData;
+				gm.init(gameData);
+				
+				AlertManager.closeLoadWindow();	
+			}
+			
+			protected function getGameResult(event:ResultEvent):void
+			{
+				var gameData:GameData = event.resultObj as GameData;
+				gm.init(gameData);
+				
+				AlertManager.closeLoadWindow();	
+			}
+						
+			protected function faultHandler(event:FaultEvent):void
+			{
+				srm.defaultFaultHandler(event);
+				resetList();
+			}
+			
+			protected function resetList():void
+			{
+				
+				if (gameList){
+					gameList.enabled = true;
+					setTimeout(function():void{gameList.selectedIndex = -1},24);
+				}
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	<s:navigationContent>
+		<components:RoboIconButton width="100%" height="100%" source="{ImageManager.BackIcon}" click="navigator.popView()"/>
+	</s:navigationContent>
+	
+	<s:titleContent>
+		<s:HGroup width="100%" verticalAlign="middle" gap="15">
+			<s:Label id="titleLabel" text="{title}" styleName="viewTitle"/>
+			<s:BitmapImage id="titleImage" width="48" height="48" smooth="true" source="{vm.appIcon}"/>
+		</s:HGroup>
+	</s:titleContent>
+	
+	 <s:List id="gameList" width="100%" top="-1" bottom="0" change="changeHandler(event)"
+			itemRenderer="com.aristobot.flexmobile.renderers.GameItemRenderer"/>
+</s:View>

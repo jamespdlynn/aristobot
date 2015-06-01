@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:NavigatorContent xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 addedToStage="init()"
+		 removedFromStage="destruct()"
+		 show="init()"
+		 hide="destruct()"
+		 xmlns:components="com.aristobot.admin.components.*"
+		 implements="com.aristobot.admin.managers.IView">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.admin.components.IconDisplayHolder;
+			import com.aristobot.admin.managers.AlertManager;
+			import com.aristobot.admin.managers.IView;
+			import com.aristobot.admin.windows.UpdateIconWindow;
+			import com.aristobot.as3srserrvice.events.FaultEvent;
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.data.IconsWrapper;
+			import com.aristobot.data.UserIcon;
+			
+			import spark.events.IndexChangeEvent;
+			
+			protected var srm:ServiceModel = ServiceModel.getInstance();
+			
+			[Bindable]
+			protected var selectedIcon:UserIcon;
+			
+			[Bindable]
+			protected var icons:ArrayList;
+			
+			protected var changed:Boolean;
+			
+			[Bindable]
+			protected var loading:Boolean;
+			
+			protected var updateWindow:UpdateIconWindow = new UpdateIconWindow();
+									
+			public function init(event:Event=null):void
+			{
+				selectedIcon = null;
+				var level:int = (levelCombo) ? levelCombo.selectedIndex+1 : 1;
+				srm.iconService.getIconsByLevel(level,loadIconsResult, loadIconsFault);
+				loading = true;
+			}
+			
+			public function destruct(event:Event=null):void
+			{
+				loading = false;
+			}
+			
+			protected function loadIconsResult(event:ResultEvent):void
+			{
+				loading = false;
+				icons = new ArrayList((event.resultObj as IconsWrapper).icons);
+			}
+			
+			protected function loadIconsFault(event:FaultEvent):void
+			{
+				loading = false;
+				srm.defaultFaultHandler(event);
+			}
+			
+			
+			protected function updateClick():void
+			{
+				
+				updateWindow.icon = selectedIcon;
+				
+				updateWindow.addEventListener(UpdateIconWindow.UPDATED, init, false, 0, true);
+				AlertManager.displayCustomWindow(updateWindow);
+				
+			}
+			
+			protected function deleteClick():void
+			{
+				AlertManager.displayConfirmWindow("Are you sure you want to permananently delete the icon '"+selectedIcon.iconKey+"' from the server (this cannot be undone)?", ["Yes","No"], deleteIcon);
+			}
+			
+			protected function deleteIcon(event:Event):void
+			{
+				loading = true;
+				srm.iconService.deleteIcon(selectedIcon.iconKey, init, deleteIconFault);
+			}
+			
+			protected function deleteIconFault(event:FaultEvent):void
+			{
+				loading = false;
+				
+				switch (event.faultCode)
+				{
+					case FaultEvent.INVALID_ICON_KEY:
+						AlertManager.displayNotificaitonWindow("Invalid Icon Key");
+						break;
+					
+					case FaultEvent.ICON_BELONGS_TO_USER:
+						AlertManager.displayNotificaitonWindow("Cannot delete this icon as it already belongs to a user, you can however still update the icon image.");
+						break;
+					
+					default:
+						srm.defaultFaultHandler(event);
+						break;
+				}
+			}
+			
+			protected function doubleClickHandler(event:MouseEvent):void
+			{
+				if (event.target is IconDisplayHolder)
+				{
+					if (!changed){
+						updateClick();
+					}
+					else{
+						changed = false;
+					}
+				}
+				
+			}
+			
+			protected function iconList_changeHandler(event:IndexChangeEvent):void
+			{
+				changed = true;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:layout>
+		<s:VerticalLayout gap="0"/>
+	</s:layout>
+	
+	
+	<s:List id="iconList" dataProvider="{icons}" width="100%" height="100%" contentBackgroundAlpha="0" selectedItem="@{selectedIcon}" click="doubleClickHandler(event)" change="iconList_changeHandler(event)"  enabled="{!loading}">
+		<s:layout>
+			<s:TileLayout horizontalAlign="center" verticalAlign="middle" paddingLeft="18" paddingRight="18" 
+						  paddingBottom="35" paddingTop="35" horizontalGap="40" verticalGap="40" requestedColumnCount="{Math.floor(width/125)}"/>
+		</s:layout>
+		<s:itemRenderer>
+			<fx:Component>
+				<components:SelectIconRenderer iconField="iconURL" iconSize="72" doubleClick="{trace('double clicked')}"/>
+			</fx:Component>
+		</s:itemRenderer>
+	</s:List>
+	
+	<s:SkinnableContainer width="100%" height="80" bottom="0" skinClass="com.aristobot.admin.skins.ContainerBarSkin">
+		
+		
+		<s:HGroup height="100%" paddingLeft="25" gap="5" verticalAlign="middle" visible="{selectedIcon != null}"  enabled="{!loading}">
+			<s:Label text="{selectedIcon.iconName}" styleName="iconNameLabel level{selectedIcon.level}" fontWeight="bold"/>
+			<s:Label text="(Level {selectedIcon.level} Icon)" styleName="iconNameLabel level{selectedIcon.level}" fontWeight="normal"/>
+			
+			<s:Spacer width="5"/>
+			<s:Button label="Update" styleName="goButton" click="updateClick()"/>
+			<s:Spacer width="5"/>
+			<s:Button label="Delete" styleName="stopButton" click="deleteClick()"/>
+		</s:HGroup>
+		
+		
+		<s:HGroup width="100%" height="100%" paddingRight="25" gap="10" verticalAlign="middle" horizontalAlign="right"  enabled="{!loading}">
+		
+			<components:BusyIndicator id="loadSpinner" width="40" height="40" visible="{loading}"/>
+			
+			
+			<s:DropDownList width="200" id="levelCombo" selectedIndex="0" change="init()">
+				<s:dataProvider>
+					<s:ArrayList>
+						<fx:String>Level 1 Icons</fx:String>
+						<fx:String>Level 2 Icons</fx:String>
+						<fx:String>Level 3 Icons</fx:String>
+						<fx:String>Level 4 Icons</fx:String>
+					</s:ArrayList>
+				</s:dataProvider>
+				
+			</s:DropDownList>
+			
+			
+		</s:HGroup>
+		
+		
+	</s:SkinnableContainer>
+	
+</s:NavigatorContent>

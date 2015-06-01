@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					  xmlns:s="library://ns.adobe.com/flex/spark" 
+					  xmlns:mx="library://ns.adobe.com/flex/mx"
+					  gap="0"
+					  preinitialize="init()">
+	
+	
+		<fx:Declarations>
+			<s:Resize id="fillEffect" target="{fillRect}" effectEnd="effectEndHandler()" effectUpdate="effectUpdateHandler()"/>
+						
+			<s:Sequence id="unlockEffect">
+				<s:Fade id="flashEffect" target="{flashRect}" alphaFrom="0" alphaTo="0.9" repeatBehavior="reverse" repeatCount="6" duration="200"/>
+				
+				<s:Parallel duration="1000">
+					<s:Fade target="{newIconLabel}" alphaFrom="1" alphaTo="0"/>
+					<s:Fade target="{unlockIconPoints}" alphaFrom="1" alphaTo="0"/>
+					<s:Fade target="{unlockIconLabel}" alphaFrom="0" alphaTo="1"/>
+					<s:Fade target="{iconImage}" alphaFrom="0" alphaTo="1"/>
+				</s:Parallel>
+				
+			</s:Sequence>
+			
+		</fx:Declarations>
+	
+	
+		<fx:Script>
+			<![CDATA[
+				import com.aristobot.data.IconUnlockInfo;
+				import com.aristobot.flexmobile.model.SoundManager;
+				import com.aristobot.flexmobile.model.ViewModel;
+				
+				import flash.sampler.startSampling;
+				import flash.utils.setTimeout;
+				
+				import mx.binding.utils.BindingUtils;
+				import mx.core.DPIClassification;
+				import mx.events.EffectEvent;
+				import mx.events.FlexEvent;
+				
+				[Bindable]
+				private var unlockInfo:IconUnlockInfo;
+				
+				private var startWidth:Number;
+				
+				private var endWidth:Number;
+				
+				private var vm:ViewModel = ViewModel.getInstance();
+
+				[Bindable]
+				private var pillHeight:Number;
+				
+				[Bindable]
+				private var currentPoints:Number;
+				
+				private var newPoints:Number;
+				
+				private var incrementDuration:Number;
+				
+				[Bindable]
+				private var cornerRadius:Number;
+				private static const FILL_DURATION:Number = 6000;
+				
+				private static const POINT_MODIFIER:Number = 1000;
+				
+
+				protected function init():void
+				{
+					switch (vm.applicationDPI)
+					{
+						case DPIClassification.DPI_320:
+						{
+							pillHeight = 40;
+							cornerRadius = 13;
+							break;
+						}
+						case DPIClassification.DPI_240:
+						{
+							pillHeight = 32;
+							cornerRadius = 10;
+							break;
+						} 
+						default:
+						{
+							pillHeight = 45;
+							cornerRadius = 15;
+						}
+					}
+				}
+				
+				public function set data(value:IconUnlockInfo):void
+				{
+					unlockInfo = value;
+					
+					if (unlockInfo)
+					{
+						addEventListener(FlexEvent.UPDATE_COMPLETE, calculateWidths, false, 0, true);
+						
+						unlockInfo.oldUnlockPercent = Math.min(unlockInfo.oldUnlockPercent, 1);
+						unlockInfo.newUnlockPercent = Math.min(unlockInfo.newUnlockPercent, 1);
+						
+						if (unlockInfo.oldUnlockPercent > unlockInfo.newUnlockPercent){
+							unlockInfo.oldUnlockPercent = unlockInfo.newUnlockPercent;
+						}
+						
+						currentPoints = Math.round(unlockInfo.oldUnlockPercent * POINT_MODIFIER);
+						newPoints = Math.round(unlockInfo.newUnlockPercent * POINT_MODIFIER);
+						
+
+					}
+					else{
+						currentPoints = 0;
+						newPoints = 0;
+					}
+					
+					invalidateDisplayList();
+				}
+				
+				protected function calculateWidths(event:FlexEvent):void
+				{
+					removeEventListener(FlexEvent.UPDATE_COMPLETE, calculateWidths);
+					
+					if (unlockInfo)
+					{
+						startWidth = Math.max(unlockInfo.oldUnlockPercent * innerGroup.width,0);
+						endWidth = Math.max(unlockInfo.newUnlockPercent * innerGroup.width,0);
+					}
+					else
+					{
+						startWidth = 0;
+						endWidth = 0;
+					}
+					
+					fillRect.width = startWidth;
+					fillRect.topRightRadiusX = 0;
+					fillRect.topRightRadiusY = 0;
+					fillRect.bottomRightRadiusX = 0;
+					fillRect.bottomRightRadiusY = 0;
+						
+					newIconLabel.alpha = 1;
+					unlockIconLabel.alpha = 0;
+					iconImage.alpha = 0;
+					iconImage.visible = false;
+					
+					setTimeout(run,1000);
+				}
+			
+				
+				/**If the component has been completely created and the data has been set fill the Pill
+				 * otherwise hold off until both these previous conditions have been satisfied
+				 */
+				protected function run():void
+				{	
+					fillEffect.stop();
+					fillEffect.widthFrom = startWidth;
+					fillEffect.widthTo = endWidth;
+					fillEffect.duration= FILL_DURATION*((endWidth-startWidth)/innerGroup.width);
+					
+					incrementDuration = 1;
+					fillEffect.play();
+				}
+				
+				
+				protected function effectUpdateHandler():void
+				{
+					if (fillRect.width > innerGroup.width-5)
+					{
+						fillRect.topRightRadiusX = cornerRadius;
+						fillRect.topRightRadiusY = cornerRadius;
+						fillRect.bottomRightRadiusX = cornerRadius;
+						fillRect.bottomRightRadiusY = cornerRadius;
+					}
+					
+					if (currentPoints < newPoints){
+						currentPoints = Math.round((fillRect.width/innerGroup.width)*POINT_MODIFIER);
+					}
+					
+				}
+				
+				protected function effectEndHandler():void
+				{
+					currentPoints = newPoints;
+					
+					if(unlockInfo.hasUnlockedIcon)
+					{
+						unlockIconLabel.visible = true;
+						iconImage.visible = true;
+						SoundManager.playSound(SoundManager.SNAP);
+						unlockEffect.play();
+					}
+				}
+
+				
+			]]>
+		</fx:Script>
+
+		<s:HGroup width="100%" gap="4" verticalAlign="middle">
+			<s:Group id="barGroup" width="100%" height="{pillHeight}">
+				<s:Rect width="100%" height="100%" alpha="1" blendMode="normal" radiusX="{cornerRadius+4}" radiusY="{cornerRadius+4}">
+					<s:fill>
+						<s:LinearGradient scaleX = "47" rotation = "-90">
+							<s:GradientEntry color="#ffffff" ratio="0" alpha="0.45"/>
+							<s:GradientEntry color="#ffffff" ratio="1" alpha="0.25"/>
+						</s:LinearGradient>
+					</s:fill>
+					<s:filters>
+						<s:DropShadowFilter angle="-90" color="#000000" distance="2" alpha="0.45" quality="2" blurX="3" blurY="3" inner="true"/>
+					</s:filters>
+				</s:Rect>
+				
+				
+				<s:Group id="innerGroup" top="4" bottom="4" left="4" right="4" height="30">
+					<s:Rect width="100%" height="100%" alpha="1" blendMode="normal" radiusX="{cornerRadius}" radiusY="{cornerRadius}">
+						<s:fill>
+							<s:SolidColor color="#8B97A5"/>
+						</s:fill>
+					</s:Rect>
+					
+					<s:Rect id="fillRect" blendMode="normal" alpha="1" height="100%" 
+							topLeftRadiusX="9" topLeftRadiusY="9" bottomLeftRadiusX="{cornerRadius}" bottomLeftRadiusY="{cornerRadius}"> 
+						<s:fill>
+							<s:SolidColor  color="#FF6600"  alpha="1"/>
+						</s:fill>
+						
+					</s:Rect>
+					
+					<s:Rect blendMode="normal" alpha="1" width="100%" height="100%" radiusX="{cornerRadius}" radiusY="{cornerRadius}">
+						<s:fill>
+							<s:LinearGradient scaleX="11" rotation = "90">
+								<s:GradientEntry color="#ffffff" ratio="0.5" alpha="0.35"/>
+								<s:GradientEntry color="#ffffff" ratio="0.5" alpha="0.0"/>
+							</s:LinearGradient>
+						</s:fill>
+						
+					</s:Rect>
+					
+					<s:Rect id="flashRect" alpha="0" width="100%" height="100%" radiusX="{cornerRadius}" radiusY="{cornerRadius}">
+						<s:fill>
+							<s:SolidColor color="#FFFFFF"/>
+						</s:fill>
+						
+					</s:Rect>
+				</s:Group>
+			</s:Group>
+			
+			<s:Group>
+				<s:Label id="newIconLabel" text="New Icon" width="100%" textAlign="center" styleName="rewardLabel" verticalCenter="0"/>
+				<s:BitmapImage id="iconImage" source="{unlockInfo.unlockedIcon.iconURL}" width="48" height="48" contentLoader="{vm.iconCache}" visible="false" smooth="true"/>
+			</s:Group>
+		</s:HGroup>
+		
+		<s:Group width="{barGroup.width}">
+			<s:Label id="unlockIconPoints" width="100%"  text="{currentPoints} / {POINT_MODIFIER} exp" textAlign="center" styleName="rewardLabel"/>
+			<s:Label id="unlockIconLabel" width="100%"  text="New Icon Unlocked!" textAlign="center" 
+					 visible="false" styleName="level{unlockInfo.unlockedIcon.level} rewardLabel"/>
+		</s:Group>
+		
+
+</s:VGroup>

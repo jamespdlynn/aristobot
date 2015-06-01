@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:components="com.aristobot.flexmobile.components.*"
+		 skinClass="com.aristobot.flexmobile.skins.ContainerBarSkin"
+		 visible.hidden="false"
+		 currentState="hidden"
+		 creationComplete="creationCompleteHandler(event)">
+	
+	<fx:Metadata>
+		[Event(name="submit", type="flash.events.Event")]
+		[Event(name="cancel", type="flash.events.Event")]
+		
+		[Style(name="padding", inherit="no", type="Number")]
+	</fx:Metadata>
+	
+	<fx:Declarations>
+		<s:Move id="moveUp" duration="300" effectEnd="{mouseChildren=true}" startDelay="100"
+				target="{this}"/>
+		
+		<s:Move id="moveDown" duration="300" startDelay="100" target="{this}" effectEnd="{currentState='hidden'}"/>
+	</fx:Declarations>
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			protected var _hidden:Boolean=true;
+			
+			public static const SUBMIT_EVENT:String = "submit";
+			public static const CANCEL_EVENT:String = "cancel";
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				moveUp.yFrom = y+height+5;
+				moveUp.yTo = y;
+				
+				moveDown.yFrom = y;
+				moveDown.yTo = y+height+5;
+				
+				
+				if (_hidden){
+					y += height+5;
+				}
+			}
+	
+			public function get hidden():Boolean
+			{
+				return _hidden;
+			}
+			
+			public function set hidden(value:Boolean):void
+			{
+
+				if (_hidden && !value){
+					currentState="showing";
+					mouseChildren = false;
+					
+					if (moveDown.isPlaying){
+						moveDown.stop();
+					}
+					
+					moveUp.play();
+				}
+				else if (!_hidden && value){
+					mouseChildren = false;
+					
+					if (moveUp.isPlaying){
+						moveDown.stop();
+					}
+					
+					moveDown.play();
+				}
+				
+				_hidden = value;
+			}
+			
+			private function cancelClickHandler(event:MouseEvent=null):void
+			{
+				event.stopImmediatePropagation();
+				mouseChildren = false;
+				dispatchEvent(new Event(CANCEL_EVENT));
+			}
+			
+			private function submitClickHandler(event:MouseEvent=null):void
+			{
+				event.stopImmediatePropagation();
+				mouseChildren = false;
+				dispatchEvent(new Event(SUBMIT_EVENT));
+			}
+			
+			
+		
+			
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="showing"/>
+		<s:State name="hidden"/>
+	</s:states>
+	
+	<components:RoboButton id="cancelButton" left="10" top="10" bottom="10" height="100%" label="Cancel" verticalCenter="0"
+						   click="cancelClickHandler(event)" includeIn="showing"/>
+	
+	<components:RoboButton id="submitButton" right="10" top="10" bottom="10" height="100%"  label="Submit"
+						   click="submitClickHandler(event)" styleName="goButton" verticalCenter="0" includeIn="showing"/>
+</s:SkinnableContainer>

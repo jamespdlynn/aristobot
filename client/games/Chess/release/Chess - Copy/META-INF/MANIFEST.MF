@@ -1,0 +1,107 @@
+Manifest-Version: 1.0
+Created-By: 1.0 (Android)
+
+Name: assets/META-INF/AIR/application.xml
+SHA1-Digest: Wju/0L+ga7yHbYNAjh6VZg1H5Gg=
+
+Name: assets/META-INF/AIR/extensions/pl.mllr.extensions.contactEditor/
+ catalog.xml
+SHA1-Digest: LQIOjC+r6aS2eVoapYXNzGliSQY=
+
+Name: assets/chess_assets/icons/icon29.png
+SHA1-Digest: h5erC9YMzyvqeovLgzlIlX7UdgY=
+
+Name: resources.arsc
+SHA1-Digest: xrIXevDq0HoOk1dH5hYyPlp/MKE=
+
+Name: assets/chess_assets/icons/icon144.png
+SHA1-Digest: ymyv8r9qMCuO3o9mY/bTChin454=
+
+Name: assets/chess_assets/icons/icon114.png
+SHA1-Digest: UaG7j3pbb3orK38CGH0+YKyDQyE=
+
+Name: assets/META-INF/AIR/extensions/com.aristobot.pushnotifications/c
+ atalog.xml
+SHA1-Digest: 0EgX5vrA9OlbxWSqhxf1ZmdaUcQ=
+
+Name: assets/Chess.swf
+SHA1-Digest: uMTWy23ydKtGScmxHI4OFnP9twM=
+
+Name: res/raw/debuginfo
+SHA1-Digest: 7L/scY3nxFgbOcUfsZnlVxjtl6w=
+
+Name: AndroidManifest.xml
+SHA1-Digest: 0jVctVOEWxO+lYC02qe1V4Gne+k=
+
+Name: res/drawable-ldpi/icon.png
+SHA1-Digest: SQDXhb0b+WmEJEraUuc6Ebh3YFg=
+
+Name: assets/META-INF/AIR/extensions/com.aristobot.pushnotifications/l
+ ibrary.swf
+SHA1-Digest: vOuu3M86oqIaqFekKjG5/i0ZyWc=
+
+Name: lib/armeabi-v7a/libNativeABI.so
+SHA1-Digest: 0AJBzFQr/W3tEOPuSpDhMgNqd8U=
+
+Name: assets/META-INF/AIR/extensions/com.aristobot.pushnotifications/M
+ ETA-INF/ANE/extension.xml
+SHA1-Digest: eXCUhe9Xu5pCGV3gV9O0i8jExuQ=
+
+Name: assets/META-INF/AIR/extensions/pl.mllr.extensions.contactEditor/
+ META-INF/ANE/extension.xml
+SHA1-Digest: iRd91soz4GtqnzZJiwFU900xNzA=
+
+Name: res/drawable-xxhdpi/icon.png
+SHA1-Digest: ymyv8r9qMCuO3o9mY/bTChin454=
+
+Name: res/drawable-mdpi/icon.png
+SHA1-Digest: lzihoiQPgrLv367Sqp9ZlwQnBEY=
+
+Name: assets/chess_assets/icons/icon96.png
+SHA1-Digest: OawA7cuo0tEQMRtleXCKApY96Us=
+
+Name: assets/chess_assets/icons/icon48.png
+SHA1-Digest: lzihoiQPgrLv367Sqp9ZlwQnBEY=
+
+Name: res/drawable-xxxhdpi/icon.png
+SHA1-Digest: ymyv8r9qMCuO3o9mY/bTChin454=
+
+Name: res/drawable-xhdpi/icon.png
+SHA1-Digest: OawA7cuo0tEQMRtleXCKApY96Us=
+
+Name: classes.dex
+SHA1-Digest: lb7haOd5+ZaoAejjcPQAJrAEAEg=
+
+Name: assets/META-INF/AIR/extensions/pl.mllr.extensions.contactEditor/
+ library.swf
+SHA1-Digest: A/hcRKcZOKJ3zuDow/y7H+yRb5o=
+
+Name: assets/Background.png
+SHA1-Digest: NV1w53pxqW5IOO6+9WpCxUKWQgk=
+
+Name: assets/META-INF/AIR/extensions/pl.mllr.extensions.contactEditor/
+ META-INF/ANE/Android-ARM/library.swf
+SHA1-Digest: A/hcRKcZOKJ3zuDow/y7H+yRb5o=
+
+Name: assets/chess_assets/icons/icon72.png
+SHA1-Digest: N8JGVpYDbBkeKK6yMSNKrBPzepc=
+
+Name: assets/chess_assets/icons/icon36.png
+SHA1-Digest: SQDXhb0b+WmEJEraUuc6Ebh3YFg=
+
+Name: assets/META-INF/AIR/extensions/com.aristobot.pushnotifications/M
+ ETA-INF/ANE/Android-ARM/library.swf
+SHA1-Digest: vOuu3M86oqIaqFekKjG5/i0ZyWc=
+
+Name: assets/chess_assets/icons/icon57.png
+SHA1-Digest: A24b4rMLERWBSOabMn9/6T1sAQk=
+
+Name: res/drawable/mp_warning_32x32_n.png
+SHA1-Digest: eCFwTk+zmvIeM+w4WQEnsknkfNI=
+
+Name: res/drawable-xhdpi/ouya_icon.png
+SHA1-Digest: ymyv8r9qMCuO3o9mY/bTChin454=
+
+Name: res/drawable-hdpi/icon.png
+SHA1-Digest: N8JGVpYDbBkeKK6yMSNKrBPzepc=
+

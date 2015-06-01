@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:components="com.aristobot.flexmobile.components.*"
+		initialize="init()"
+		viewActivate="viewActivate()"
+		viewDeactivate="viewDeactivate()"
+		title="Opponents" >
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.as3srserrvice.events.FaultEvent;
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.flexmobile.data.IconListData;
+			import com.aristobot.flexmobile.model.ActionContentManager;
+			import com.aristobot.flexmobile.model.AlertManager;
+			import com.aristobot.flexmobile.model.ImageManager;
+			import com.aristobot.flexmobile.model.SoundManager;
+			import com.aristobot.flexmobile.model.ViewController;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.ArrayList;
+									
+			protected var srm:ServiceModel = ServiceModel.getInstance();
+			
+			protected var vc:ViewController = ViewController.getInstance();
+			
+			protected var vm:ViewModel = ViewModel.getInstance();
+			
+			
+			protected const findOpponent:IconListData = new IconListData("*findOpponent*", "Find Opponent", ImageManager.SearchIcon);	
+			
+			protected function init():void
+			{
+				createModifiedOpponentList();
+			}
+			
+			protected function viewActivate():void
+			{
+				vm.addEventListener(ViewModel.OPPONENTS_CHANGED, createModifiedOpponentList, false, 0, true);
+				resetList();
+				
+				if (!srm.isAuthenticated() || !vc.dataLoaded){
+					vc.autologin();
+				}else{
+					ActionContentManager.startLoading();
+					srm.opponentService.getAllOpponents(function (event:ResultEvent):void{
+						ActionContentManager.stopLoading();
+						vm.loadOpponentsResult(event);
+					});
+				}
+			}
+			
+			protected function viewDeactivate():void
+			{
+				vm.removeEventListener(ViewModel.OPPONENTS_CHANGED, createModifiedOpponentList);
+			}
+			
+			protected function createModifiedOpponentList(event:Event=null):void
+			{
+				var modifiedOpponentList:ArrayList = new ArrayList();
+				modifiedOpponentList.addItem(findOpponent);
+				
+				
+				for each (var listData:IconListData in vm.opponentList.source){
+					modifiedOpponentList.addItem(listData);
+				}
+				
+				opponentList.dataProvider = modifiedOpponentList;
+				
+			}
+			
+			
+			protected function changeHandler():void
+			{				
+				SoundManager.playSound(SoundManager.CLICK);
+				
+				var listData:IconListData = opponentList.selectedItem as IconListData;
+				
+				if (listData.key == findOpponent.key){
+					navigator.pushView(FindOpponent);
+				}else if (listData){
+					AlertManager.displayLoadWindow("Loading Opponent...");
+					srm.opponentService.getOpponent(listData.key, loadOpponentResult, loadOpponentFault);
+					
+				}
+				
+			}
+			
+			protected function loadOpponentResult(event:ResultEvent):void
+			{
+				AlertManager.closeLoadWindow();
+				navigator.pushView(OpponentProfile, event.resultObj);
+			}
+			
+			protected function loadOpponentFault(event:FaultEvent):void
+			{
+				resetList();
+				srm.defaultFaultHandler(event);
+			}
+			
+			protected function resetList():void
+			{
+				if (opponentList){
+					opponentList.enabled = true;
+					setTimeout(function():void{opponentList.selectedIndex = -1},24);
+				}
+			}
+			
+			
+
+		]]>
+	</fx:Script>
+	
+	<s:navigationContent>
+		<components:RoboIconButton width="100%" height="100%" source="{ImageManager.BackIcon}" click="navigator.popView()"/>
+	</s:navigationContent>
+	
+	<s:titleContent>
+		<s:HGroup width="100%" verticalAlign="middle" gap="15">
+			<s:Label id="titleLabel" text="{title}" styleName="viewTitle"/>
+			<s:BitmapImage id="titleImage" width="48" height="48" smooth="true" source="{ImageManager.OpponentsIcon}"/>
+		</s:HGroup>
+	</s:titleContent>
+
+	<s:List id="opponentList" width="100%" top="-1" bottom="0" 
+			itemRenderer="com.aristobot.flexmobile.renderers.UserItemRenderer" change="changeHandler()"/>
+	
+</s:View>

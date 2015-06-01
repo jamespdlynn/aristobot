@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:components="com.aristobot.flexmobile.components.*"
+		add="viewAddedHandler(event)"
+		viewActivate="viewActivate(event)"
+		title="My Profile" xmlns:mx="library://ns.adobe.com/flex/mx">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.as3srserrvice.events.FaultEvent;
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.data.UserCredentials;
+			import com.aristobot.data.UserIcon;
+			import com.aristobot.data.UsersWrapper;
+			import com.aristobot.flexmobile.data.IconListData;
+			import com.aristobot.flexmobile.model.ActionContentManager;
+			import com.aristobot.flexmobile.model.AlertManager;
+			import com.aristobot.flexmobile.model.GameModel;
+			import com.aristobot.flexmobile.model.SoundManager;
+			import com.aristobot.flexmobile.model.ViewController;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			protected var srm:ServiceModel = ServiceModel.getInstance();
+			
+			protected var vc:ViewController = ViewController.getInstance();
+	
+			protected var vm:ViewModel = ViewModel.getInstance();
+			
+			protected var gm:GameModel = GameModel.getInstance();
+			
+			protected function viewAddedHandler(event:Event):void
+			{
+				if (vc.activated && (!srm.isAuthenticated() || !vc.dataLoaded)){
+					vc.autologin();
+				}
+				else if (navigator.poppedViewReturnedObject && navigator.poppedViewReturnedObject.object is UserIcon)
+				{
+					var icon:UserIcon = navigator.poppedViewReturnedObject.object as UserIcon
+					
+					if (vm.currentUser && vm.currentUser.icon != icon)
+					{
+						vm.userIcon = icon;
+						
+						ActionContentManager.startLoading();
+			
+						var creds:UserCredentials = new UserCredentials();
+						creds.iconKey = icon.iconKey;
+						srm.userService.updateUserInfo(creds, updateUserIconResult, updateUserIconFault);
+					}
+					
+					
+				}				
+			}
+			
+			protected function viewActivate(event:Event):void
+			{
+				resetList();
+				
+				gm.resetCurrentGame();
+				vm.resetCurrentOpponent();
+				
+				//Make sure atleast 5 minutes have passed before refreshing user data
+				if (vc.activated && srm.isAuthenticated() && vc.dataLoaded && new Date().time - vm.lastUpdatedUser > 300000){
+					ActionContentManager.startLoading();
+					srm.userService.getCurrentUser(function (event:ResultEvent):void{
+						vm.loadCurrentUserResult(event);
+						ActionContentManager.stopLoading();
+					});
+				}
+				
+			}
+			
+			protected function updateUserIconResult(event:ResultEvent):void
+			{
+				ActionContentManager.stopLoading();
+			}
+			
+			protected function updateUserIconFault(event:FaultEvent):void
+			{
+				srm.defaultFaultHandler(event);
+				srm.userService.getCurrentUser(vm.loadCurrentUserResult);
+			}
+
+			protected function optionSelected():void
+			{
+				var option:IconListData = optionsList.selectedItem as IconListData;
+				
+				if (!option) return;
+
+				switch (option.key)
+				{
+					case vm.gamesOption.key:
+						navigator.pushView(GamesList);
+						break;
+					
+					case vm.opponentsOption.key:
+						navigator.pushView(OpponentsList);
+						break;
+					
+					case vm.messagesOption.key:
+						navigator.pushView(MessagesList);
+						break;		
+				
+					
+					case vm.iconsOption.key:
+						navigator.pushView(SelectIcon, vm.currentUser.icon);
+						break;
+					
+					
+					case vm.inviteAFriendOption.key:
+						navigator.pushView(InviteAFriend);
+						break;
+					
+					
+					case vm.leaderboardOption.key:
+						srm.userService.getTopUsers(getLeaderboardResult, function (event:FaultEvent):void{
+							resetList();
+							srm.defaultFaultHandler(event);
+						});
+						
+						AlertManager.displayLoadWindow("Loading Leaderboard...");
+						break;
+					
+					
+				}
+				
+				SoundManager.playSound(SoundManager.CLICK);
+			}
+			
+			
+			protected function getLeaderboardResult(event:ResultEvent):void
+			{
+				AlertManager.closeLoadWindow();
+				
+				var wrapper:UsersWrapper = event.resultObj as UsersWrapper;
+				vm.setLeaderBoardData(wrapper.users);
+				navigator.pushView(Leaderboard);
+			}
+			
+			protected function resetList():void
+			{
+				if (optionsList){
+					optionsList.enabled = true;
+					setTimeout(function():void{optionsList.selectedIndex = -1},24);
+				}
+			}
+
+			
+		]]>
+	</fx:Script>
+	
+	
+	
+	<s:titleContent>
+		<s:Label id="titleLabel" text="{title}" styleName="viewTitle"/>
+	</s:titleContent>
+	
+	<s:layout>
+		<s:VerticalLayout gap="0"/>
+	</s:layout>
+			
+	<s:Group width="100%" height="120">
+		
+		
+		<s:HGroup gap="8" height="100%" verticalAlign="middle" paddingLeft="20">
+			<components:IconRank userIcon="{vm.userIcon}" iconContentLoader="{vm.iconCache}"/>
+			
+			<s:Label id="username" text="{vm.currentUser.username}" maxDisplayedLines="1" styleName="username">
+				<s:filters>
+					<s:DropShadowFilter color="0x000000" alpha="0.7" distance="5" blurX="4" blurY="4"/>
+				</s:filters>
+			</s:Label>
+		</s:HGroup>
+		
+		
+		<components:RecordDisplay id="userRecord" user="{vm.currentUser}" verticalCenter="0" styleName="userRecord" right="0"/>
+		
+		<components:Line width="100%" bottom="0"/>
+		
+	</s:Group>
+		
+	<s:List id="optionsList" width="100%" height="100%" dataProvider="{vm.profileOptions}" change="optionSelected()" itemRenderer="com.aristobot.flexmobile.renderers.ListDataItemRenderer"/>
+
+	
+	
+</s:View>

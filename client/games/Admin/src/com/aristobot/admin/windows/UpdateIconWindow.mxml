@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<windows:AlertWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark"
+					 xmlns:windows="com.aristobot.admin.windows.*"
+					 xmlns:components="com.aristobot.admin.components.*"
+					 currentState="normal"
+					 width="500"
+					 closeEnabled="true">
+	
+	
+	
+	<fx:Metadata>
+		[Event(name="success", type="flash.events.Event")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[	
+			import com.aristobot.admin.components.IconDisplayHolder;
+			import com.aristobot.admin.managers.AlertManager;
+			import com.aristobot.as3srserrvice.events.FaultEvent;
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.data.UserIcon;
+			
+			import mx.events.FlexEvent;
+			
+			public static const UPDATED:String = "updated";
+			
+			private var file:File = File.documentsDirectory;
+			
+			private var imageChanged:Boolean;
+			
+			private var srm:ServiceModel = ServiceModel.getInstance();
+			
+			private var updatedIcon:UserIcon;
+			
+			private var _icon:UserIcon;
+			[Bindable]
+			public function get icon():UserIcon{
+				return _icon;
+			}
+			public function set icon(value:UserIcon):void{
+				_icon = value;
+				
+				if (icon.deviceType == "android"){
+					deviceIndex = 1;
+				}
+				else if (icon.deviceType == "ios"){
+					deviceIndex = 2;
+				}
+				else{
+					deviceIndex = 0;
+				}
+				
+				imageChanged = false;
+				currentState = "normal";
+				
+				if (updateButton){
+					updateButton.enabled = false;
+				}
+				
+			}
+			
+			[Bindable]
+			private var deviceIndex:int;
+
+			
+			
+			protected function updateIcon():void
+			{
+				if (nameInput.text.length == 0){
+					nameInput.displayError("Please enter a Name");
+					return;
+				}
+				
+				updatedIcon = new UserIcon();
+				updatedIcon.iconKey = icon.iconKey;
+				updatedIcon.applicationId = icon.applicationId;
+				
+				updatedIcon.iconName = nameInput.text;
+				updatedIcon.level = levelInput.selectedIndex + 1;
+				updatedIcon.isDefault = defaultInput.selected;
+				
+				if (deviceInput.selectedIndex == 1){
+					updatedIcon.deviceType = "android";
+				}
+				else if (deviceInput.selectedIndex == 2){
+					updatedIcon.deviceType = "ios";
+				}
+				else{
+					updatedIcon.deviceType = null;
+				}
+				
+				
+				if (imageChanged){
+					srm.iconService.uploadIcon(file, updatedIcon.iconKey, uploadIconResult, uploadIconFault);
+				}
+				else{
+					srm.iconService.updateIcon(updatedIcon, updateIconResult, updateIconFault);
+				}
+				
+				currentState = "updating";
+			}
+			
+			protected function uploadIconResult(event:ResultEvent):void
+			{
+				IconDisplayHolder.iconCache.removeCacheEntry(icon.iconURL);
+				srm.iconService.updateIcon(updatedIcon, updateIconResult, updateIconFault);
+			}
+			
+			protected function uploadIconFault(event:FaultEvent):void
+			{
+				currentState = "normal";
+				AlertManager.displayNotificaitonWindow("Error uploading Image");
+				dispatchEvent(new Event(UPDATED));
+				close();
+			}
+			
+			protected function updateIconResult(event:ResultEvent):void
+			{
+				icon = updatedIcon;
+				AlertManager.displayNotificaitonWindow("Icon successfully updated.");
+				dispatchEvent(new Event(UPDATED));
+				close();
+			}
+			
+			protected function updateIconFault(event:FaultEvent):void
+			{
+				currentState = "normal";
+				
+				switch (event.faultCode)
+				{
+					case FaultEvent.INVALID_ICON_KEY:
+						keyInput.errorString = "Invalid Icon Key";
+						break;
+					
+					case FaultEvent.INVALID_ICON_NAME:
+						keyInput.errorString = "Invalid Icon Name";
+						break;
+					
+					case FaultEvent.INVALID_ICON_LEVEL:
+						levelInput.errorString = "Invalid Icon Level";
+						break;
+					
+					case FaultEvent.INVALID_DEVICE_TYPE:
+						deviceInput.errorString = "Invalid Icon Device Type";
+						break;
+					
+					default:
+						dispatchEvent(new Event(CLOSE_CLICKED));
+						close();
+						srm.defaultFaultHandler(event);
+						break;
+				}
+				
+			}
+			
+			
+			protected function selectImage(event:MouseEvent):void
+			{
+				file.addEventListener(Event.SELECT, loadImage);
+				file.browse([new FileFilter("PNG Images","*.png")]);
+				
+			}
+			
+			protected function loadImage(event:Event):void
+			{
+				file.removeEventListener(Event.SELECT, loadImage);
+				
+				if (file.size > 10000){
+					AlertManager.displayNotificaitonWindow("Icon must be less than 10kb");
+					file.cancel();
+					
+				}
+				else{
+					file.addEventListener(Event.COMPLETE, imageLoaded);
+					file.load();
+				}
+			}
+			
+			protected function imageLoaded(event:Event):void
+			{
+				file.removeEventListener(Event.COMPLETE, imageLoaded);
+				iconImage.addEventListener(FlexEvent.READY, iconImageLoaded);
+				iconImage.source = file.data;
+				
+			}
+			
+			protected function iconImageLoaded(event:FlexEvent):void
+			{
+				iconImage.removeEventListener(FlexEvent.READY, iconImageLoaded);
+				
+				if (iconImage.bitmapData.width != 72 || iconImage.bitmapData.height != 72){
+					AlertManager.displayNotificaitonWindow("Icon must be 72x72 pixels");
+					iconImage.source = icon.iconURL;
+				}
+				else{
+					updateButton.enabled = true;
+					imageChanged = true;
+				}
+				
+				
+			}	
+			
+			
+			
+		]]>
+	</fx:Script>
+	
+	<windows:states>
+		<s:State name="normal"/>
+		<s:State name="updating"/>
+	</windows:states>
+	
+	<windows:layout>
+		<s:VerticalLayout gap="25"/>
+	</windows:layout>
+	
+	<s:Label width="100%" textAlign="left" text="Update Icon" styleName="viewTitle" />			
+	
+	<components:FormTextInput id="keyInput" width="100%"  label="Icon Key" text="{icon.iconKey}" enabled="false"/>
+	<components:FormTextInput id="nameInput" width="100%"  label="Icon Name" text="{icon.iconName}" change="{updateButton.enabled = true}" maxChars="20"/>
+	<components:FormComboInput id="levelInput" width="100%" label="Level" options="{['Level 1','Level 2','Level 3', 'Level 4']}" selectedIndex="{icon.level-1}"  change="{updateButton.enabled = true}"/>
+	
+	<components:FormComboInput id="deviceInput" width="100%" label="Devices" options="{['All','Android','IOS']}" selectedIndex="{deviceIndex}"  change="{updateButton.enabled = true}"/>
+	
+	<s:HGroup gap="3" paddingLeft="3" verticalAlign="middle">
+		<s:CheckBox id="defaultInput" scaleX="2" scaleY="2" selected="{icon.isDefault}" change="{updateButton.enabled = true}"/>
+		<s:Label text="Is Default"/>
+	</s:HGroup>
+	
+	
+	<s:Group width="100%">
+		<s:Image id="iconImage" width="72" height="72" source="{icon.iconURL}" useHandCursor="true" mouseChildren="false" buttonMode="true" click="selectImage(event)"/>
+		<s:Button id="updateButton" right="0" label="Update" click="updateIcon()" styleName="goButton" includeIn="normal" enabled="false" verticalCenter="0"/>
+		<components:BusyIndicator right="20" includeIn="updating" width="44" height="44" verticalCenter="0"/>
+	</s:Group>
+	
+	
+	
+	
+	
+</windows:AlertWindow>

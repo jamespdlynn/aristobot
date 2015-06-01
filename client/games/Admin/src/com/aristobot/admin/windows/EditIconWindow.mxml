@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<windows:AlertWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark"
+					 xmlns:windows="com.aristobot.admin.windows.*"
+					 xmlns:components="com.aristobot.admin.components.*"
+					 currentState="normal"
+					 width="500"
+					 closeEnabled="true"
+					 creationComplete="quickValidation()">
+	
+	
+	
+	<fx:Metadata>
+		[Event(name="success", type="flash.events.Event")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[	
+			import com.aristobot.admin.managers.AlertManager;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.data.UserIcon;
+			
+			import mx.events.FlexEvent;
+			
+			public static const NEXT:String = "next";
+			
+			private static const KEY_REG_EXP:RegExp = /^[a-z_]+$/;
+			
+			private var file:File;
+						
+			private var srm:ServiceModel = ServiceModel.getInstance();
+						
+			private var _icon:UserIcon;
+			[Bindable]
+			public function get icon():UserIcon{
+				return _icon;
+			}
+			public function set icon(value:UserIcon):void{
+				_icon = value;
+				
+				if (icon.deviceType == "android"){
+					deviceIndex = 1;
+				}
+				else if (icon.deviceType == "ios"){
+					deviceIndex = 2;
+				}
+				else{
+					deviceIndex = 0;
+				}
+				
+				file = new File(icon.iconURL);
+				
+				quickValidation();
+			}
+			
+			[Bindable]
+			private var deviceIndex:int;
+			
+			protected function quickValidation():Boolean
+			{
+				if (icon && keyInput)
+				{
+					if (!icon.iconKey || !icon.iconKey.length){
+						keyInput.displayError("Please enter an icon key");
+						return false;
+					}
+					else if (!icon.iconKey.match(KEY_REG_EXP)){
+						keyInput.displayError("Invalid icon key");
+						return false;
+					}
+					
+					if (!icon.iconName.length > 0){
+						nameInput.displayError("Please enter an icon name");
+						return false;
+					}
+				}
+				
+				return true;
+				
+			}
+			
+			protected function selectImage(event:MouseEvent):void
+			{
+				file.addEventListener(Event.SELECT, loadImage);
+				file.browse([new FileFilter("PNG Images","*.png")]);
+			}
+			
+			protected function loadImage(event:Event):void
+			{
+				file.removeEventListener(Event.SELECT, loadImage);
+				
+				if (file.size > 10000){
+					AlertManager.displayNotificaitonWindow("Icon must be less than 10MB");
+					file.cancel();
+					
+				}
+				else{
+					file.addEventListener(Event.COMPLETE, imageLoaded);
+					file.load();
+				}
+			}
+			
+			protected function imageLoaded(event:Event):void
+			{
+				file.removeEventListener(Event.COMPLETE, imageLoaded);
+				iconImage.addEventListener(FlexEvent.READY, iconImageLoaded);
+				iconImage.source = file.data;
+				
+			}
+			
+			protected function iconImageLoaded(event:FlexEvent):void
+			{
+				iconImage.removeEventListener(FlexEvent.READY, iconImageLoaded);
+				
+				if (iconImage.bitmapData.width != 72 || iconImage.bitmapData.height != 72){
+					AlertManager.displayNotificaitonWindow("Icon must be 72x72 pixels");
+					iconImage.source = icon.iconURL;
+				}
+				else{
+					icon.iconURL = (Capabilities.os.search("Mac") >= 0) ? "file://" + file.nativePath : file.nativePath;
+				}
+
+			}
+			
+			protected function deviceInputChangeHandler(event:Event):void
+			{
+				if (deviceInput.selectedIndex == 1){
+				icon.deviceType = "android";
+				}
+				else if (deviceInput.selectedIndex == 2){
+					icon.deviceType = "ios";
+				}
+				else{
+					icon.deviceType = null;
+				}
+				
+				
+			}
+			
+			protected function nextButtonClickHandler(event:MouseEvent):void
+			{
+				if (quickValidation())
+				{
+					dispatchEvent(new Event(NEXT));
+					close();
+				}
+				
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<windows:states>
+		<s:State name="normal"/>
+		<s:State name="updating"/>
+	</windows:states>
+	
+	<windows:layout>
+		<s:VerticalLayout horizontalAlign="center" gap="25"/>
+	</windows:layout>
+	
+	<s:Label width="100%" textAlign="left" text="Edit Icon" styleName="viewTitle" />
+	
+	<s:Label width="100%" text="Icon Key must be unique and contain only lower case characters or under scores"/>
+	
+	<components:FormTextInput id="keyInput" width="100%"  label="Icon Key" text="@{icon.iconKey}"/>
+	<components:FormTextInput id="nameInput" width="100%"  label="Icon Name" text="@{icon.iconName}" maxChars="20"/>
+	<components:FormComboInput id="levelInput" width="100%" label="Level" options="{['Level 1','Level 2','Level 3', 'Level 4']}" selectedIndex="{icon.level-1}" change="{icon.level = levelInput.selectedIndex+1}" />
+	<components:FormComboInput id="deviceInput" width="100%" label="Devices" options="{['All','Android','IOS']}" selectedIndex="{deviceIndex}" change="deviceInputChangeHandler(event)"/>
+	
+	
+		<s:Group width="100%">
+			<s:Image id="iconImage" width="72" height="72" source="{icon.iconURL}" useHandCursor="true" mouseChildren="false" buttonMode="true" click="selectImage(event)"/>
+			<s:Button id="nextButton" right="0" label="Next" styleName="goButton" includeIn="normal" verticalCenter="0" click="nextButtonClickHandler(event)"/>
+		</s:Group>
+	
+	
+	
+	
+	
+</windows:AlertWindow>

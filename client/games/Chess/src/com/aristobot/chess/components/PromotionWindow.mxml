@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<windows1:AlertWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:windows="com.aristobot.flexmobile.components.windows.*" 
+		xmlns:components="com.aristobot.flexmobile.components.*" xmlns:renderers="com.aristobot.flexmobile.renderers.*" xmlns:components1="com.aristobot.flexmobile.components.*" xmlns:windows1="com.aristobot.flexmobile.components.windows.*" xmlns:renderers1="com.aristobot.flexmobile.renderers.*">
+	
+	<windows:layout>
+		<s:VerticalLayout horizontalAlign="center" gap="0"/>
+	</windows:layout>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.chess.data.PieceVO;
+			import com.aristobot.chess.pieces.Bishop;
+			import com.aristobot.chess.pieces.Castle;
+			import com.aristobot.chess.pieces.ChessPiece;
+			import com.aristobot.chess.pieces.Knight;
+			import com.aristobot.chess.pieces.Queen;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			import mx.collections.ArrayList;
+			
+			public static const SELECT:String = "select";
+			
+			[Bindable]
+			private var promotions:ArrayList;
+			
+			
+			[Bindable]
+			private var fontColor:uint = 0xFFFFFF;
+			
+			[Bindable]
+			private var selectedIndex:int;
+			
+			
+			public function set pieceData(data:PieceVO):void
+			{
+				if (!data.isWhite){
+					setStyle("backgroundColor",0xEDEDED);
+					setStyle("borderColor",0x000000);
+					fontColor = 0x000000;
+				}
+				
+				promotions = new ArrayList();
+				promotions.addItem(new Knight(data));
+				promotions.addItem(new Bishop(data));
+				promotions.addItem(new Queen(data));
+				promotions.addItem(new Castle(data));
+				
+				selectedIndex = 2;
+			}
+			
+			public function get promotedType():String
+			{
+				switch (selectedIndex)
+				{
+					case 0: return getQualifiedClassName(Knight);
+						
+					case 1: return getQualifiedClassName(Bishop);
+						
+					case 2: return getQualifiedClassName(Queen);
+						
+					case 3: return getQualifiedClassName(Castle);
+				}
+				
+				return getQualifiedClassName(Queen);
+			}
+			
+			public function get promotedPiece():ChessPiece
+			{
+				return promotions.getItemAt(selectedIndex) as ChessPiece;
+			}
+			
+			protected function selectClickHandler():void
+			{
+				dispatchEvent(new Event(SELECT));
+				close();
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:Label id="alertLabel" text="Promote Piece" width="100%" textAlign="center" styleName="alertLabel" color="{fontColor}"/>
+	
+	<s:List id="promotionList" dataProvider="{promotions}" horizontalCenter="0" height="100%" contentBackgroundAlpha="0"
+			selectedIndex="@{selectedIndex}" mouseEnabled="false">
+		<s:layout>
+			<s:HorizontalLayout horizontalAlign="center" gap="20" paddingBottom="30" paddingRight="8" paddingTop="30" paddingLeft="8"/>
+		</s:layout>
+		<s:itemRenderer>
+			
+			<fx:Component>
+				<renderers1:SelectIconRenderer iconField="imageSource" mouseDown="SoundManager.playSound(SoundManager.CLICK)">
+					<fx:Script>
+						<![CDATA[
+							import com.aristobot.flexmobile.model.SoundManager;
+							import com.aristobot.flexmobile.model.ViewModel;
+							
+							private var vm:ViewModel = ViewModel.getInstance();
+							
+							override public function set data(value:Object):void{
+								super.data = value;
+								iconSize = (vm.applicationDPI == 240) ? 64 : 72;
+							}
+						]]>
+					</fx:Script>
+				</renderers1:SelectIconRenderer>
+			</fx:Component>
+		</s:itemRenderer>
+	</s:List>
+	
+	<components1:RoboButton label="Select" click="selectClickHandler()" styleName="goButton" right="0"/>
+	
+	
+</windows1:AlertWindow>

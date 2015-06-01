@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<windows:AlertWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:windows="com.aristobot.flexmobile.components.windows.*" 
+		xmlns:components="com.aristobot.flexmobile.components.*"
+		initialize="initializeHandler()">
+	
+	<windows:layout>
+		<s:HorizontalLayout horizontalAlign="center" verticalAlign="middle" gap="8"/>
+	</windows:layout>
+	
+	<fx:Script>
+		<![CDATA[	
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			protected var _imageSize:Number;
+			
+			protected var _spinnerSize:Number;
+			
+			protected var _priority:int;
+			public function get priority():int{
+				return _priority;
+			}
+			public function set priority(value:int):void{
+				_priority = value;
+			}
+
+			protected var vm:ViewModel = ViewModel.getInstance();
+						
+			protected function initializeHandler():void
+			{
+				if (vm.applicationDPI == 240){
+					_imageSize = 64;
+				}
+				else{
+					_imageSize = 72;
+				}
+				
+			}
+			
+			[Bindable]
+			private var _label:String;
+			public function set label(value:String):void
+			{
+				_label = value;
+			}
+
+		]]>
+	</fx:Script>
+
+	<s:BitmapImage source="{vm.appIcon}" width="{_imageSize}" height="{_imageSize}" smooth="true"/>
+	<s:Label id="alertLabel" text="{_label}" styleName="alertLabel"/>
+	
+	<s:Spacer width="2"/>
+	
+	<s:BusyIndicator width="52" height="52"/>
+	
+</windows:AlertWindow>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:FormItem xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:components="com.aristobot.flexmobile.components.*">
+	
+	<fx:Metadata>
+		[Event(name="enter", type="mx.events.FlexEvent")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			
+			private var _text:String = "";
+			private var _type:String = "default";
+			[Bindable]
+			public function get text():String{
+				return _text;
+			}
+			public function set text(value:String):void{
+				_text = (value) ? value : "";
+			}
+			
+			[Inspectable(category="General",enumeration="default,punctuation,url,number,contact,email",defaultValue="default")]
+			public function get type():String{
+				return formInput.softKeyboardType;
+			}
+			public function set type(value:String):void{
+				formInput.softKeyboardType = value;
+			}
+	
+			public function set displayAsPassword(value:Boolean):void{
+				formInput.displayAsPassword = value;
+			}
+			
+			public function set maxChars(value:int):void{
+				formInput.maxChars = value;
+			}
+			
+			public function set restrict(value:String):void{
+				formInput.restrict = value;
+			}
+			
+			[Inspectable(category="General",enumeration="default,done,go,next,search",defaultValue="default")]
+			public function get returnKeyLabel():String{
+				return formInput.returnKeyLabel;
+			}
+			public function set returnKeyLabel(value:String):void{
+				formInput.returnKeyLabel = value;
+			}
+	 
+			override public function setFocus():void
+			{
+				formInput.setFocus();
+			}
+
+			public function clear():void
+			{
+				formInput.text = "";
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+
+	<components:RoboTextInput id="formInput" width="100%" text="@{text}" change="onChange(event)" minHeight="50" enter="{dispatchEvent(event)}" autoCorrect="false"/>
+</components:FormItem>

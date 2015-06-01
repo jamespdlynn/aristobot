@@ -1,0 +1,57 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace components "com.aristobot.flexmobile.components.*";
+@namespace mobile "spark.skins.mobile.*";
+@namespace spark "spark.skins.spark.*";
+@namespace chess "com.aristobot.chess.*";
+@namespace windows "com.aristobot.flexmobile.components.windows.*";
+@namespace skins "com.aristobot.flexmobile.skins.*";
+@namespace views "com.aristobot.flexmobile.views.*";
+@namespace local "*";
+
+global{
+	textShadowColor:#000000;
+	chromeColor:#790100;
+	focusColor:#790100;
+}
+
+
+s|ViewMenuItem{
+	chromeColor:#650505;
+	focusColor:#4185F3;
+}
+
+s|ActionBar{
+	chromeColor:#1A1A1A;
+}
+
+windows|AlertWindow{
+	backgroundColor:#1A1A1A;
+	borderColor:#F1F1F1;
+}
+
+s|Button,s|ToggleButton{
+	chromeColor:#650505;
+}
+
+s|List{
+	contentBackgroundColor:#650505;
+	downColor:#790100;
+	selectionColor:#790100;
+}
+
+
+skins|ContainerBarSkin{
+	contentBackgroundColor:#1A1A1A;
+}
+
+components|CircleRepresenter{
+	redMultiplier:2;
+	greenMultiplier:0.5;
+	blueMultiplier:0.5;
+}
+
+.errorLabel{
+	color: #EEEEEE;
+}
+

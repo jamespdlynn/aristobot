@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:NavigatorContent xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:components="com.aristobot.admin.components.*"
+		 addedToStage="init()"
+		 removedFromStage="destruct()"
+		 show="init()"
+		 hide="destruct()"
+		 enabled="{!loading}"
+		 implements="com.aristobot.admin.managers.IView">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.admin.managers.AlertManager;
+			import com.aristobot.admin.managers.IView;
+			import com.aristobot.as3srserrvice.events.FaultEvent;
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.data.MessagesWrapper;
+			import com.aristobot.data.SystemMessage;
+			
+			import mx.collections.ArrayList;
+			import mx.events.FlexEvent;
+			
+			import spark.events.IndexChangeEvent;
+						
+			protected static const HTML_SPACER:String = "<p> </p>";
+			
+			protected var srm:ServiceModel = ServiceModel.getInstance();
+			
+			[Bindable]
+			protected var selectedMessage:SystemMessage;
+			
+			[Bindable]
+			protected var messages:ArrayList;
+						
+			[Bindable]
+			protected var loading:Boolean;
+			
+			[Bindable]
+			protected var previewHTMLText:String;
+			
+									
+			public function init(event:Event=null):void
+			{
+				srm.messageService.getAllSystemMessages(initResult, faultHandler);
+				loading = true;
+			}
+
+			public function destruct(event:Event=null):void
+			{	
+				loading = false;
+			}
+			
+			protected function initResult(event:ResultEvent):void
+			{
+				loading = false;
+				messages = new ArrayList((event.resultObj as MessagesWrapper).messages);
+				
+				if (messages && messages.length)
+				{
+					
+					if (!selectedMessage){
+						selectedMessage = messages.getItemAt(0) as SystemMessage;
+					}
+					else
+					{
+						for each (var message:SystemMessage in messages){
+							if (message.messageKey == selectedMessage.messageKey){
+								selectedMessage = message;
+								break;
+							}
+						}
+					}
+					
+				}
+			}
+			
+			protected function updateClick():void
+			{
+				srm.messageService.updateSystemMessage(selectedMessage, updateResult, faultHandler);
+			}
+			
+			protected function updateResult(event:ResultEvent):void
+			{
+				AlertManager.displayNotificaitonWindow("Message Successfully Updated!");
+				init();
+			}
+			
+			protected function deleteClick():void
+			{
+				AlertManager.displayConfirmWindow("Are you sure you want to permananently delete this message from the server (this cannot be undone)?", ["Yes","No"], deleteMessage);
+			}
+			
+			protected function deleteMessage(event:Event):void
+			{
+				loading = true;
+				srm.messageService.deleteSystemMessage(selectedMessage.messageKey, deleteMessageResult, faultHandler);
+			}
+			
+			protected function deleteMessageResult(event:ResultEvent):void
+			{
+				selectedMessage = null;
+				AlertManager.displayNotificaitonWindow("Message Successfully Deleted!");
+				init();
+			}
+			
+			protected function faultHandler(event:FaultEvent):void
+			{
+				loading = false;
+				srm.defaultFaultHandler(event);
+			}
+		
+			protected function messagesListChangeHandler(event:IndexChangeEvent=null):void
+			{
+				if (editor.hasChanges){
+					init();
+				}
+				
+				editor.hasChanges = false;
+			}
+			
+			protected function changingHandler(event:IndexChangeEvent):void
+			{
+				if (editor.hasChanges){
+					editor.hasChanges = false;
+					event.preventDefault();
+					AlertManager.displayConfirmWindow("You have unsaved changes do you want to proceed?", ["Yes", "No"], init, function (e:Event):void{editor.hasChanges=true;});
+				}
+				
+			}
+
+			
+		]]>
+	</fx:Script>
+	
+	<s:layout>
+		<s:HorizontalLayout gap="0"/>
+	</s:layout>
+	
+	
+	<s:List id="messagesList" width="30%" height="100%" dataProvider="{messages}" selectedItem="@{selectedMessage}" change="messagesListChangeHandler(event)" changing="changingHandler(event)">
+		<s:itemRenderer>
+			<fx:Component>
+				<s:ItemRenderer>
+					
+					<fx:Script>
+						<![CDATA[
+							import com.aristobot.data.SystemMessage;
+							
+							[Bindable]
+							protected var message:SystemMessage;
+							
+							override public function set data(value:Object):void{
+								super.data = value;
+								message = value as SystemMessage;
+							}
+							
+					
+						]]>
+					</fx:Script>
+					
+					
+						<s:HGroup paddingLeft="10" paddingRight="10" paddingBottom="10" paddingTop="10" verticalAlign="middle" gap="0">
+							<s:BitmapImage height="64" width="64" source="{message.icon.iconURL}"/>
+							
+							<s:Label width="{this.width - 84}" fontSize="20" fontWeight="bold" text="{message.subject}"/>
+						</s:HGroup>
+				</s:ItemRenderer>
+			</fx:Component>
+		</s:itemRenderer>
+	</s:List>
+	
+	<s:VGroup width="70%" height="100%">
+		
+		<s:Group width="100%" height="100%">
+			<components:MessageEditor id="editor" message="@{selectedMessage}" top="10" bottom="10" right="10" left="10"/>
+		</s:Group>
+		
+		<s:SkinnableContainer width="100%" height="80" bottom="0" skinClass="com.aristobot.admin.skins.ContainerBarSkin">
+			
+			
+			
+			<s:HGroup width="100%" height="100%" paddingRight="25" gap="10" verticalAlign="middle" horizontalAlign="right" >
+
+				<components:BusyIndicator id="loadSpinner" width="40" height="40" visible="{loading}"/>
+				
+				<s:Button label="Update" styleName="goButton" click="updateClick()" enabled="{editor.hasChanges}"/>
+				<s:Button label="Delete" styleName="stopButton" click="deleteClick()"/>
+				
+
+			</s:HGroup>
+			
+			
+		</s:SkinnableContainer>
+	</s:VGroup>
+	
+</s:NavigatorContent>

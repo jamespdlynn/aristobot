@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:components="com.aristobot.flexmobile.components.*"
+		viewActivate="viewActivate()" 
+		viewDeactivate="viewDeactivate()"
+		title="{vm.currentOpponent.username}" >
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.as3srserrvice.events.FaultEvent;
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.as3srserrvice.model.Status;
+			import com.aristobot.data.GameData;
+			import com.aristobot.flexmobile.data.IconListData;
+			import com.aristobot.flexmobile.model.ActionContentManager;
+			import com.aristobot.flexmobile.model.AlertManager;
+			import com.aristobot.flexmobile.model.GameModel;
+			import com.aristobot.flexmobile.model.ImageManager;
+			import com.aristobot.flexmobile.model.SoundManager;
+			import com.aristobot.flexmobile.model.ViewController;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			import spark.events.IndexChangeEvent;
+			
+			protected var srm:ServiceModel = ServiceModel.getInstance();
+						
+			protected var vm:ViewModel = ViewModel.getInstance();
+			
+			protected var gm:GameModel = GameModel.getInstance();
+			
+			protected var vc:ViewController = ViewController.getInstance();
+												
+						
+			protected function viewActivate():void
+			{
+				resetList();
+				
+				ActionContentManager.stopLoading();
+											
+				if (!srm.isAuthenticated() || !vc.dataLoaded){
+					vc.autologin();
+				}
+				else{
+					ActionContentManager.startLoading();
+					srm.gameService.getAllGameUpdates(gameUpdateResult);
+				}	
+			}
+			
+			protected function viewDeactivate():void
+			{
+				ActionContentManager.stopLoading();
+			}
+			
+			protected function gameUpdateResult(event:ResultEvent):void
+			{
+				ActionContentManager.stopLoading();
+				vm.updateGamesResult(event);
+			}
+			
+			protected function changingHandler(event:IndexChangeEvent):void
+			{
+				if (event.newIndex < 0 || event.newIndex >= vm.expiredOpponentGameList.length){
+					event.preventDefault();
+				}
+				
+			} 
+			
+			protected function changeHandler():void
+			{				
+				SoundManager.playSound(SoundManager.CLICK);
+				
+				var listData:IconListData = list.selectedItem as IconListData;
+				
+				if (listData.dataObj)
+				{
+					
+					var gameData:GameData = listData.dataObj as GameData;					
+					
+					srm.gameService.getGame(gameData.gameKey, getGameResult, faultHandler);
+					AlertManager.displayLoadWindow("Loading Game...");
+					
+				}
+			}
+			
+			
+			protected function getGameResult(event:ResultEvent):void
+			{
+				var gameData:GameData = event.resultObj as GameData;
+				if (gameData.gameStatus != Status.GAME_FINISHED){
+					vm.updateGame(gameData);
+				}
+				
+				gm.init(gameData);
+				AlertManager.closeLoadWindow();
+			}
+			
+			
+			
+			protected function faultHandler(event:FaultEvent):void
+			{
+				srm.defaultFaultHandler(event);
+				resetList();
+			}
+			
+			
+			protected function resetList():void
+			{
+				if (list){
+					list.enabled = true;
+					setTimeout(function():void{list.selectedIndex = -1},24);
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:navigationContent>
+		<components:RoboIconButton width="100%" height="100%" source="{ImageManager.BackIcon}" click="navigator.popView()"/>
+	</s:navigationContent>
+	
+	<s:titleContent>
+		<s:HGroup width="100%" verticalAlign="middle" gap="15">
+			<s:Label id="titleLabel" text="{title}" styleName="viewTitle"/>
+			<s:BitmapImage id="titleImage" width="48" height="48" smooth="true" source="{ImageManager.OpponentsIcon}"/>
+		</s:HGroup>
+	</s:titleContent>
+	
+	<s:List id="list" width="100%" top="-1" bottom="0" changing="changingHandler(event)"  change="changeHandler()"
+			dataProvider="{vm.expiredOpponentGameList}"
+			itemRenderer="com.aristobot.flexmobile.renderers.GameItemRenderer"/>
+	
+	<s:Label id="noChatMessage" top="150" horizontalCenter="0" styleName="alertLabel" width="80%" textAlign="center"
+			 text="You have not completed any games against this opponent." visible="{vm.expiredOpponentGameList.length == 0}">
+		<s:filters>
+			<s:DropShadowFilter alpha="0.7" blurX="4" blurY="4" color="0x000000" distance="5"/>
+		</s:filters>
+	</s:Label>
+</s:View>

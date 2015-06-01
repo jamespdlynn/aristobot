@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<windows:AlertWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:windows="com.aristobot.flexmobile.components.windows.*" 
+		xmlns:components="com.aristobot.flexmobile.components.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			import flash.net.navigateToURL;
+			
+			private var vm:ViewModel = ViewModel.getInstance();
+			
+			protected function confirmClickHandler(event:MouseEvent):void
+			{
+				close();
+				vm.nextRateDate = Infinity;
+				navigateToURL(new URLRequest(vm.applicationData.updateURL));	
+				
+			}
+			
+			protected function rejectClickHandler(event:MouseEvent):void
+			{
+				close();
+				vm.nextRateDate = new Date().time + (ViewModel.RATE_DATE_INTERVAL*3);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<windows:layout>
+		<s:VerticalLayout horizontalAlign="center" gap="15"/>
+	</windows:layout>
+	
+	<s:Label width="100%" text="Rate {vm.applicationName}" textAlign="center" styleName="alertTitle"/>
+	
+	<s:Label width="100%" text="If you have enjoyed playing {vm.applicationName} so far, please take a few moments to rate the app and help encourage others to join!"/>
+	
+	<s:HGroup gap="20">
+		<components:RoboButton id="confirmButton" label="Rate Now!" click="confirmClickHandler(event)" styleName="goButton"/>
+		<components:RoboButton id="rejectButton" label="No Thanks" click="rejectClickHandler(event)"/>
+	</s:HGroup>
+	
+	
+	
+</windows:AlertWindow>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<rexpfd>
+    <destination path="DestructorV2.Amazon Cloud:/applications/services"/>
+    <options createDirectoryStructure="false" createSelectedOnly="true" descriptionFilePath="/services/export/jsp.rexpfd" overWriteExistingFiles="false" reviewSynchronize="false" saveSettings="true"/>
+    <selectedElements>
+        <file path="/services/WebContent/about-us.jsp"/>
+        <file path="/services/WebContent/chess-mates.jsp"/>
+        <file path="/services/WebContent/contact.jsp"/>
+        <file path="/services/WebContent/forgotPassword.jsp"/>
+        <file path="/services/WebContent/index.jsp"/>
+        <file path="/services/WebContent/leaderboards.jsp"/>
+        <file path="/services/WebContent/privacy-policy.jsp"/>
+        <file path="/services/WebContent/support.jsp"/>
+    </selectedElements>
+</rexpfd>

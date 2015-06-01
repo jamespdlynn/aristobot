@@ -1,0 +1,72 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace components "com.aristobot.flexmobile.components.*";
+@namespace mobile "spark.skins.mobile.*";
+@namespace spark "spark.skins.spark.*";
+@namespace chess "com.aristobot.chess.*";
+@namespace windows "com.aristobot.flexmobile.components.windows.*";
+@namespace skins "com.aristobot.flexmobile.skins.*";
+@namespace views "com.aristobot.flexmobile.views.*";
+@namespace local "*";
+
+global{
+	textShadowColor:#000000;
+	chromeColor:#1A1A1A;
+}
+
+
+s|ViewMenuItem{
+	chromeColor:#191919;
+	focusColor:#5e1312;
+}
+
+s|TextInput,
+s|TextArea{
+	color:#333333;
+	focusColor:#6F1311;
+}
+
+s|ActionBar{
+	chromeColor:#1A1A1A;
+}
+
+windows|AlertWindow{
+	backgroundColor:#191919;
+	borderColor:#F1F1F1;
+}
+
+s|Button{
+	chromeColor:#191919;
+	color:#F1F1F1;
+}
+
+
+s|ToggleButton{
+	chromeColor:#6F1311;
+}
+
+s|List{
+	contentBackgroundColor:#191919;
+	downColor:#5e1312;
+	selectionColor:#5e1312;
+}
+
+
+skins|ContainerBarSkin{
+	contentBackgroundColor:#191919;
+}
+
+components|CircleRepresenter{
+	redMultiplier:2;
+	greenMultiplier:0.5;
+	blueMultiplier:0.5;
+}
+
+components|LinkButton{
+	color:#D72830;
+}
+
+views|MessageView{
+	linkColor:#CE2523;
+}
+

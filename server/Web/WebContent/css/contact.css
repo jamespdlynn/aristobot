@@ -1,0 +1,213 @@
+#contact-form {
+	width:465px;
+	padding:10px;
+	-moz-border-radius:15px;
+	position:relative;
+}
+
+#contact-form h1 {
+	font-size:42px;
+}
+
+#contact-form h2 {
+	margin-bottom:15px;
+	font-style:italic;
+	font-weight:normal;
+}
+
+
+#contact-form input, 
+#contact-form select, 
+#contact-form textarea, 
+#contact-form label {
+	font-size:20px;
+	margin-bottom:2px;
+}
+
+#contact-form input, 
+#contact-form select, 
+#contact-form textarea {
+	width:450px;
+	border: 1px solid #CCCCCC;
+	margin-bottom:20px;
+	padding:4px;
+}
+
+#contact-form input.checkbox{
+	width:0px;
+	margin-bottom:0px;
+	
+}
+
+#contact-form input:focus, 
+select:focus, 
+textarea:focus {
+	border: 1px solid #AFCDD8;
+	background-color: #EBF2F4;
+}
+
+#contact-form textarea {
+	height:150px;
+	resize: none;
+}
+
+
+#contact-form label {
+	display:block;
+}
+
+#contact-form .required {
+	font-weight:bold;
+	color:#F00;	
+}
+#contact-form #submit-button {
+	width:100px;
+	float:right;
+	margin-right:6px;
+	display: block;
+	text-decoration:none;
+  background-color: #000000;
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #ee432e), color-stop(50%, #c63929), color-stop(50%, #b51700), color-stop(100%, #891100));
+  background-image: -webkit-linear-gradient(top, #ee432e 0%, #c63929 50%, #b51700 50%, #891100 100%);
+  background-image: -moz-linear-gradient(top, #ee432e 0%, #c63929 50%, #b51700 50%, #891100 100%);
+  background-image: -ms-linear-gradient(top, #ee432e 0%, #c63929 50%, #b51700 50%, #891100 100%);
+  background-image: -o-linear-gradient(top, #ee432e 0%, #c63929 50%, #b51700 50%, #891100 100%);
+  background-image: linear-gradient(top, #ee432e 0%, #c63929 50%, #b51700 50%, #891100 100%);
+  border: 1px solid #951100;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  -webkit-box-shadow: inset 0px 0px 0px 1px rgba(255, 115, 100, 0.4), 0 1px 3px #333333;
+  -moz-box-shadow: inset 0px 0px 0px 1px rgba(255, 115, 100, 0.4), 0 1px 3px #333333;
+  box-shadow: inset 0px 0px 0px 1px rgba(255, 115, 100, 0.4), 0 1px 3px #333333;
+  color: #fff;
+  font: bold 21px "helvetica neue", helvetica, arial, sans-serif;
+  line-height: 1;
+  padding: 12px 0 14px 0;
+  text-align: center;
+  text-shadow: 0px -1px 1px rgba(0, 0, 0, 0.8);
+  padding: .4em 1em .5em 1em;
+ }
+ 
+ 
+#contact-form #submit-button:hover  {
+    background-color: #f37873;
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #f37873), color-stop(50%, #db504d), color-stop(50%, #cb0500), color-stop(100%, #a20601));
+    background-image: -webkit-linear-gradient(top, #f37873 0%, #db504d 50%, #cb0500 50%, #a20601 100%);
+    background-image: -moz-linear-gradient(top, #f37873 0%, #db504d 50%, #cb0500 50%, #a20601 100%);
+    background-image: -ms-linear-gradient(top, #f37873 0%, #db504d 50%, #cb0500 50%, #a20601 100%);
+    background-image: -o-linear-gradient(top, #f37873 0%, #db504d 50%, #cb0500 50%, #a20601 100%);
+    background-image: linear-gradient(top, #f37873 0%, #db504d 50%, #cb0500 50%, #a20601 100%);
+    cursor: pointer; 
+}
+    
+#contact-form #submit-button:active  {
+    background-color: #d43c28;
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #d43c28), color-stop(50%, #ad3224), color-stop(50%, #9c1500), color-stop(100%, #700d00));
+    background-image: -webkit-linear-gradient(top, #d43c28 0%, #ad3224 50%, #9c1500 50%, #700d00 100%);
+    background-image: -moz-linear-gradient(top, #d43c28 0%, #ad3224 50%, #9c1500 50%, #700d00 100%);
+    background-image: -ms-linear-gradient(top, #d43c28 0%, #ad3224 50%, #9c1500 50%, #700d00 100%);
+    background-image: -o-linear-gradient(top, #d43c28 0%, #ad3224 50%, #9c1500 50%, #700d00 100%);
+    background-image: linear-gradient(top, #d43c28 0%, #ad3224 50%, #9c1500 50%, #700d00 100%);
+    -webkit-box-shadow: inset 0px 0px 0px 1px rgba(255, 115, 100, 0.4);
+    -moz-box-shadow: inset 0px 0px 0px 1px rgba(255, 115, 100, 0.4);
+    box-shadow: inset 0px 0px 0px 1px rgba(255, 115, 100, 0.4);
+     }
+
+
+
+#contact-form #loading {
+	width:32px;
+	height:32px;
+	background-image:url(../images/loading.gif);
+	display:block;
+	position:absolute;
+	right:130px;
+	bottom:16px;
+	display:none;
+}
+
+#contact-form .checkbox{
+	margin-bottom:25px;
+}
+
+#contact-form .checkbox input{
+	width:25px;
+	margin-bottom:0px;
+}
+
+#contact-form .checkbox label{
+	display:inline;
+	font-size:16px;
+}
+
+#errors {
+	border:solid 1px #E58E8E;
+	padding:10px;
+	margin-bottom:25px;
+	display:block;
+	width:437px;
+	-webkit-border-radius:8px;
+	-moz-border-radius:8px;
+	border-radius:8px;
+	background:#FFE6E6 url(../images/cancel_48.png) no-repeat 405px center;
+	font-weight:bold;
+}
+
+
+#success {
+	border:solid 1px #83D186;
+	padding:25px 10px;
+	margin-bottom:25px;
+	display:block;
+	width:437px;
+	-webkit-border-radius:8px;
+	-moz-border-radius:8px;
+	border-radius:8px;
+	background:#D3EDD3 url(../images/accepted_48.png) no-repeat 405px center;
+	font-weight:bold;
+}
+
+
+#req-field-desc {
+	font-style:italic;
+}
+
+/* Remove box shadow firefox, chrome and opera put around required fields. It looks rubbish. */
+input:required, textarea:required {
+	-moz-box-shadow:none;
+	-webkit-box-shadow:none;
+	-o-box-shadow:none;
+	box-shadow:none;
+}
+
+
+/* Normalize placeholder styles */
+
+/* chrome, safari */
+::-webkit-input-placeholder {
+	color:#AAAAAA;
+	font-style:italic;
+}
+
+/* mozilla */
+input:-moz-placeholder, textarea:-moz-placeholder {
+	color:#AAAAAA;
+	font-style:italic;
+}
+
+/* ie (faux placeholder) */
+input.placeholder-text, textarea.placeholder-text  { 
+	color:#AAAAAA;
+	font-style:italic;
+}
+
+.ir { display: block; text-indent: -999em; overflow: hidden; background-repeat: no-repeat; text-align: left; direction: ltr; }
+.hidden { display: none; visibility: hidden; }
+.visuallyhidden { border: 0; clip: rect(0 0 0 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px; }
+.visuallyhidden.focusable:active,
+.visuallyhidden.focusable:focus { clip: auto; height: auto; margin: 0; overflow: visible; position: static; width: auto; }
+.invisible { visibility: hidden; }
+.clearfix:before, .clearfix:after { content: "\0020"; display: block; height: 0; overflow: hidden; }
+.clearfix:after { clear: both; }
+.clearfix { zoom: 1; }

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding ="utf-8"?>
+<swc xmlns="http://www.adobe.com/flash/swccatalog/9">
+  <versions>
+    <swc version="1.2" />
+    <flex version="4.6.0" build="23201" minimumSupportedVersion="3.0.0" />
+  </versions>
+  <features>
+    <feature-script-deps />
+    <feature-files />
+  </features>
+  <libraries>
+    <library path="library.swf">
+      <script name="com/aristobot/pushnotifications/ErrorCodes" mod="1338368349677" signatureChecksum="1046770952" >
+        <def id="com.aristobot.pushnotifications:ErrorCodes" /> 
+        <dep id="AS3" type="n" /> 
+        <dep id="Object" type="i" /> 
+      </script>
+      <script name="_1797f74cb9921a2eb2714fc4bf80163dbb93f9f31563b79ec45f5d59efd16b8c_flash_display_Sprite" mod="1339536052248" signatureChecksum="3706092331" >
+        <def id="_1797f74cb9921a2eb2714fc4bf80163dbb93f9f31563b79ec45f5d59efd16b8c_flash_display_Sprite" /> 
+        <dep id="flash.system:Security" type="e" /> 
+        <dep id="AS3" type="n" /> 
+        <dep id="flash.display:Sprite" type="i" /> 
+      </script>
+      <script name="com/aristobot/pushnotifications/PushNotification" mod="1339536049729" signatureChecksum="671035598" >
+        <def id="com.aristobot.pushnotifications:PushNotification" /> 
+        <dep id="com.aristobot.pushnotifications.events:PushNotificationEvent" type="e" /> 
+        <dep id="Date" type="e" /> 
+        <dep id="trace" type="e" /> 
+        <dep id="flash.system:Capabilities" type="e" /> 
+        <dep id="flash.events:StatusEvent" type="e" /> 
+        <dep id="flash.external:ExtensionContext" type="e" /> 
+        <dep id="flash.events:StatusEvent" type="s" /> 
+        <dep id="flash.external:ExtensionContext" type="s" /> 
+        <dep id="AS3" type="n" /> 
+        <dep id="flash.events:EventDispatcher" type="i" /> 
+      </script>
+      <script name="com/aristobot/pushnotifications/events/PushNotificationEvent" mod="1339110820102" signatureChecksum="3995185076" >
+        <def id="com.aristobot.pushnotifications.events:PushNotificationEvent" /> 
+        <dep id="AS3" type="n" /> 
+        <dep id="flash.events:Event" type="i" /> 
+      </script>
+      <digests>
+        <digest type="SHA-256" signed="false" value="3b07bc97571c966cde6ebd5f49fd79f17347b11cf02d9bd5f71d08bd2327d2c9"   />
+      </digests>
+    </library>
+  </libraries>
+  <files>
+  </files>
+</swc>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:FormItem xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:components="com.aristobot.admin.components.*">
+	
+	<fx:Script>
+		<![CDATA[
+			
+			private var _text:String = "";
+			[Bindable]
+			public function get text():String{
+				return _text;
+			}
+			public function set text(value:String):void{
+				_text = (value) ? value : "";
+			}
+	
+			public function set displayAsPassword(value:Boolean):void{
+				formInput.displayAsPassword = value;
+			}
+			
+			public function set maxChars(value:int):void{
+				formInput.maxChars = value;
+			}
+			
+			public function set editable(value:Boolean):void{
+				formInput.editable = value;
+			}
+	
+			override public function setFocus():void
+			{
+				formInput.setFocus();
+			}
+
+			public function clear():void
+			{
+				formInput.text = "";
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	
+	<s:TextInput id="formInput" width="100%" text="@{text}" change="onChange(event)"/>
+</components:FormItem>

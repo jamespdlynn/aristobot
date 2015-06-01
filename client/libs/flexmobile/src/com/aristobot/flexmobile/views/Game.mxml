@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" 
+		xmlns:components="com.aristobot.flexmobile.components.*"
+		creationComplete="creationCompleteHandler()"
+		initialize="init()"
+		viewActivate="gm.activate()"
+		viewDeactivate="gm.deactivate();"
+		removedFromStage="removedFromStage()"
+		xmlns:mx="library://ns.adobe.com/flex/mx">
+
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.flexmobile.model.GameModel;
+			import com.aristobot.flexmobile.model.ImageManager;
+			
+			protected var gm:GameModel = GameModel.getInstance();
+			
+			protected function init():void
+			{
+				gm.addEventListener(GameModel.GAME_READY_EVENT, updateMessageBar, false, 0 , true);
+			}
+						
+			protected function creationCompleteHandler():void
+			{	
+				gm.initializeGameBoard(0, messageBar.height, width, height-messageBar.height-actionBar.height);
+				addElementAt(gm.gameBoard, 0);
+				
+				messageBar.hidden = !gm.gameReady;
+			}
+			
+			
+			protected function updateMessageBar(event:Event):void
+			{
+				if (messageBar){
+					messageBar.update(gm.currentGameData.lastActionMessage);
+				}
+			}
+			
+			protected function removedFromStage():void
+			{
+				
+				removeEventListener(GameModel.GAME_READY_EVENT, updateMessageBar);
+				removeAllElements();
+				
+				if (!(navigator.activeView is Chat) && !(navigator.activeView is Game)){
+					gm.resetCurrentGame();
+				}
+				
+			}
+			
+
+						
+		]]>
+	</fx:Script>
+	
+	<s:navigationContent>
+		<components:RoboIconButton width="100%" height="100%" source="{ImageManager.BackIcon}" click="navigator.popView()"/>
+	</s:navigationContent>
+
+	<s:titleContent>
+		<s:HGroup width="100%" verticalAlign="middle" gap="15">
+			<s:Label id="titleLabel" text="{gm.titleLabel}" styleName="viewTitle"/>
+			<s:BitmapImage id="titleImage" source="{gm.titleImage}" width="48" height="48" smooth="true"/>
+		</s:HGroup>
+	</s:titleContent>
+	
+	<s:Rect id="overlay" left="0" right="0" top="0" bottom="{actionBar.height}"
+			visible="{gm.actionState == GameModel.GAME_OVER_ACTION_STATE}">
+		<s:fill>
+			<s:SolidColor color="#000000" alpha="0.25"/>
+		</s:fill>
+	</s:Rect>
+	
+	<components:GameMessageBar id="messageBar" width="100%" message="{gm.currentGameData.lastActionMessage}"/>
+	
+	<components:GameActionBar id="actionBar" width="100%" bottom="0"/>
+	
+	<components:GameSubmitBar id="submitBar" width="100%" 
+							  height="{actionBar.height}"
+							  y="{height-actionBar.height}"
+							  submit="gm.play(event)"
+							  cancel="gm.revert(event)"
+							  hidden="{!gm.gameBoard.playEnabled}"/>
+	
+	
+</s:View>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<windows:AlertWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		currentState="confirmAndReject"  
+		xmlns:windows="com.aristobot.flexmobile.components.windows.*" 
+		xmlns:components="com.aristobot.flexmobile.components.*"
+		creationComplete="creationCompleteHandler(event)">
+	
+	<windows:layout>
+		<s:VerticalLayout horizontalAlign="center" gap="25"/>
+	</windows:layout>
+	
+	
+	<fx:Metadata>
+		[Event(name="confirm", type="flash.events.Event")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[	
+			import mx.events.FlexEvent;
+			public static const CONFIRM:String = "confirm";
+			public static const REJECT:String = "reject";
+			
+			[Bindable]
+			private var _label:String;
+			
+			[Bindable]
+			private var _confirmButtonLabel:String = "Confirm";
+			
+			[Bindable]
+			private var _rejectButtonLabel:String = "Reject";
+			
+			public function set label(value:String):void
+			{
+				_label = value;
+			}
+			
+			public function set buttonLabels(value:Array):void
+			{
+				if (value && value[0]){
+					_confirmButtonLabel = value[0];
+				}
+				if (value && value[1]){
+					_rejectButtonLabel = value[1];
+				}
+				
+				currentState = (value && value.length == 1) ? "confirmOnly" : "confirmAndReject";
+			}
+			
+			protected function confimClick():void
+			{
+				close();
+				dispatchEvent(new Event(CONFIRM));
+			}
+			
+			protected function rejectClick():void
+			{
+				close();
+				dispatchEvent(new Event(REJECT));
+			}
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				if (closeEnabled){
+					rejectButton.styleName = "stopButton";
+				}
+				
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<windows:states>
+		<s:State name="confirmOnly"/>
+		<s:State name="confirmAndReject"/>
+	</windows:states>
+
+	
+	<s:Label id="confirmLabel" text="{_label}" width="100%" textAlign="center" styleName="alertLabel"/>
+	
+	<s:HGroup gap="20">
+		<components:RoboButton id="confirmButton" label="{_confirmButtonLabel}" click="confimClick()" styleName="goButton"/>
+		<components:RoboButton id="rejectButton" label="{_rejectButtonLabel}" click="rejectClick()" excludeFrom="confirmOnly"/>
+	</s:HGroup>
+	
+	
+</windows:AlertWindow>

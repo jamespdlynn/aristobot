@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:MobileApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+							  xmlns:s="library://ns.adobe.com/flex/spark"
+							  xmlns:components="com.aristobot.flexmobile.components.*"
+							  appIcon="@Embed(source='/checkers_assets/images/app_icon.png')"
+							  title="Checkers"
+							  splashScreenImage="com.aristobot.flexmobile.util.SplashScreenImage"
+							  runtimeDPIProvider="com.aristobot.flexmobile.util.RuntimeDPIProvider"
+							  initialize="init(event)">
+	
+	<fx:Style source="assets/styles/defaults.css"/>
+	<fx:Style source="checkers_assets/styles/checkers.css"/>
+	
+	<fx:Script> 
+		<![CDATA[
+			import com.aristobot.checkers.CheckersBoard;
+			import com.aristobot.flexmobile.model.ViewController;
+			
+			import mx.events.FlexEvent;
+			
+			protected static const API_KEY:String = "f5f7825e41bc41cd8d38224c35f4dcdd";
+			
+			protected function init(event:FlexEvent):void{
+				ViewController.getInstance().setUp(this, API_KEY, this.appIcon, new CheckersBoard());
+			}
+			
+		]]>
+	</fx:Script> 
+	
+	
+</components:MobileApplication>

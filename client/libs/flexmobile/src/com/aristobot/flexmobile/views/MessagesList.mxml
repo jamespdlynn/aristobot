@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		title="Messages"
+		viewDeactivate="vm.markProfileOptionAlert(vm.messagesOption, false)"
+		xmlns:components="com.aristobot.flexmobile.components.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.data.SystemMessage;
+			import com.aristobot.flexmobile.data.IconListData;
+			import com.aristobot.flexmobile.model.ActionContentManager;
+			import com.aristobot.flexmobile.model.AlertManager;
+			import com.aristobot.flexmobile.model.ImageManager;
+			import com.aristobot.flexmobile.model.SoundManager;
+			import com.aristobot.flexmobile.model.ViewController;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			protected var srm:ServiceModel = ServiceModel.getInstance();
+			
+			protected var vm:ViewModel = ViewModel.getInstance();
+			protected var vc:ViewController = ViewController.getInstance();
+			
+
+			protected function changeHandler():void
+			{
+				
+				SoundManager.playSound(SoundManager.CLICK);
+				
+				var listData:IconListData = list.selectedItem as IconListData;
+				var message:SystemMessage = listData.dataObj as SystemMessage;
+				
+				if (!message.isRead)
+				{
+					message.isRead = true;
+					listData.decorator = null;
+					ActionContentManager.startLoading();
+					srm.messageService.markMessageRead(message.messageKey, function(event:ResultEvent):void{
+						ActionContentManager.stopLoading();
+					});
+				}
+				
+				if (message.type == SystemMessage.CHAT_TYPE){
+					AlertManager.displayLoadWindow("Loading conversation...");
+					srm.messageService.getConversation(message.messageKey, function(event:ResultEvent):void{
+						AlertManager.closeLoadWindow();
+						navigator.pushView(Chat, event.resultObj);
+					});
+				}
+				else{
+					navigator.pushView(MessageView, message);
+				}
+				
+				
+			
+			}
+			
+
+			
+		
+			
+		]]>
+	</fx:Script>
+	
+	<s:navigationContent>
+		<components:RoboIconButton width="100%" height="100%" source="{ImageManager.BackIcon}" click="navigator.popView()"/>
+	</s:navigationContent>
+	
+	<s:titleContent>
+		<s:HGroup width="100%" verticalAlign="middle" gap="15">
+			<s:Label id="titleLabel" text="{title}" styleName="viewTitle"/>
+			<s:BitmapImage id="titleImage" width="48" height="48" smooth="true" source="{ImageManager.MessagesIcon}"/>
+		</s:HGroup>
+	</s:titleContent>
+	
+	<s:List id="list" width="100%" top="-1" bottom="0" change="changeHandler()"
+			dataProvider="{vm.messageList}"
+			itemRenderer="com.aristobot.flexmobile.renderers.MessageItemRenderer"/>
+</s:View>

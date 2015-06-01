@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:components="com.aristobot.flexmobile.components.*"
+		title="Invite a Friend" xmlns:mx="library://ns.adobe.com/flex/mx"
+		initialize="init(event)"
+		creationComplete="creationCompleteHandler(event)">
+	
+	<fx:Declarations>
+		<fx:Array id="validators">
+			<mx:EmailValidator  source="{input1}" property="text" required="false"/>
+			<mx:EmailValidator  source="{input2}" property="text" required="false"/>
+			<mx:EmailValidator  source="{input3}" property="text" required="false"/>
+			<mx:EmailValidator  source="{input4}" property="text" required="false"/>
+		</fx:Array>
+		
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.flexmobile.model.AlertManager;
+			import com.aristobot.flexmobile.model.ImageManager;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			import mx.core.DPIClassification;
+			import mx.events.FlexEvent;
+			import mx.validators.Validator;
+			
+			protected var vm:ViewModel = ViewModel.getInstance();
+			
+			protected var srm:ServiceModel = ServiceModel.getInstance();
+			
+			protected var inputs:Vector.<EmailContactInput>;
+			
+			[Bindable]
+			protected var gap:int;
+			
+			protected function init(event:FlexEvent):void{
+				gap = (vm.applicationDPI == DPIClassification.DPI_320) ? 22 : 15;
+			}
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				inputs = new Vector.<EmailContactInput>;
+				inputs.push(input1, input2, input3, input4);
+				
+			}
+			
+			
+			protected function inputChangeHandler(event:Event):void
+			{
+				if ((event.currentTarget as EmailContactInput).text.length > 0){
+					inviteButton.enabled = true;
+				}else{
+					for each (var input:EmailContactInput in inputs){
+						if (input.text.length > 0){
+							return;
+						}
+					}
+					inviteButton.enabled = false;
+				}
+				
+				
+				
+			}
+			
+			protected function inviteButtonClickHandler(event:MouseEvent):void
+			{
+				
+				
+				var errors:Array = Validator.validateAll(validators);
+				
+				if (errors.length > 0){
+					AlertManager.displayNotificaitonWindow("Please enter a vaild email address");
+					errors[0].currentTarget.source.setFocus();
+				}else{
+					var addresses:Vector.<String> = new Vector.<String>;
+					for each (var input:EmailContactInput in inputs){
+						if (input.text.length > 0){
+							addresses.push(input.text);
+						}
+					}
+					
+					
+					srm.userService.inviteToPlay(addresses, function (event:ResultEvent):void{
+						AlertManager.closeLoadWindow();
+						AlertManager.displayNotificaitonWindow("Invites successfully sent!");
+						for each (var input:EmailContactInput in inputs){
+							input.text = "";
+						}
+						inviteButton.enabled = false;
+					});
+					
+					AlertManager.displayLoadWindow("Sending Invites...");
+				}
+				
+				
+			}
+			
+			
+			
+		]]>
+	</fx:Script>
+	
+	<s:layout>
+		<s:VerticalLayout gap="{gap}" paddingLeft="20" paddingRight="20" paddingBottom="{gap}" paddingTop="{gap}" />
+	</s:layout>
+	
+	<s:navigationContent>
+		<components:RoboIconButton width="100%" height="100%" source="{ImageManager.BackIcon}" click="navigator.popView()"/>
+	</s:navigationContent>
+
+	
+	<s:titleContent>
+		<s:HGroup width="100%" verticalAlign="middle" gap="15">
+			<s:Label id="titleLabel" text="{title}" styleName="viewTitle"/>
+			<s:BitmapImage id="titleImage" width="48" height="48" smooth="true" source="{ImageManager.InviteIcon}"/>
+		</s:HGroup>
+	</s:titleContent>
+		 
+	<s:Label width="100%" text="Invite a friend to sign up and play {vm.applicationName}! Anyone with an IOS or Android device can play!"/>
+	
+	<s:Label width="100%" text="As a bonus, each time a friend you invite succesfully registers with the game, your account will be rewarded with a new level 2 icon!"/>
+	
+	<s:Label width="100%" text="Enter up to four email addresses in the inputs below*. An email will be sent out to each address with details about the game and how to access it."/>
+		
+	<components:EmailContactInput id="input1" width="100%" prompt="Email Address 1" change="inputChangeHandler(event)"/>
+	<components:EmailContactInput id="input2" width="100%" prompt="Email Address 2" change="inputChangeHandler(event)"/>
+	<components:EmailContactInput id="input3" width="100%" prompt="Email Address 3" change="inputChangeHandler(event)"/>
+	<components:EmailContactInput id="input4" width="100%" prompt="Email Address 4" change="inputChangeHandler(event)"/>
+	
+	<s:Spacer height="5"/>
+	
+	<s:Group width="100%">
+		<s:Label width="75%" bottom="0"  text="* Press the 'user' button next to each input to quickly select an address from your device's contacts" styleName="smallText"/>
+		
+		<components:RoboButton id="inviteButton" label="Invite" styleName="goButton" right="0" enabled="false" click="inviteButtonClickHandler(event)"/>
+		
+	</s:Group>	
+	
+
+	
+	
+</s:View>

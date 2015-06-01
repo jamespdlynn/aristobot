@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  gap="10">
+	
+	<fx:Metadata>
+		[Style(name="redMultiplier", inherit="no", type="Number")]
+		[Style(name="blueMultiplier", inherit="no", type="Number")]
+		[Style(name="greenMultiplier", inherit="no", type="Number")]
+	</fx:Metadata>
+	
+	<fx:Script>	
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			
+			import spark.primitives.BitmapImage;
+			
+			
+			[Embed('/assets/images/circleEmpty.png')]
+			private static const circleEmpty:Class;
+			
+			[Bindable]
+			private var circles:ArrayCollection;
+			
+			private var _numCircles:int = 0;
+			private var _startIndex:int =0;
+			private var _endIndex:int = 0;
+			
+			private var redMultiplier:Number = 2;
+			private var blueMultiplier:Number = 0.5;
+			private var greenMultiplier:Number = 0.5;
+			
+			private var rgbObj:Object;
+			
+			public function set numItems(value:Number):void
+			{
+				_numCircles = value;
+			}
+			
+			public function set index(value:int):void
+			{
+				_startIndex = value;
+				_endIndex = value;
+				updateCircles();
+			}
+			
+			public function set startIndex(value:int):void
+			{
+				_startIndex = value;
+				updateCircles();
+			}
+			
+			public function set endIndex(value:int):void
+			{
+				_endIndex = value;
+				updateCircles();
+			}
+			
+			private function updateCircles():void
+			{
+				for (var i:int = 0; i < _numCircles; i++){
+					var circle:BitmapImage = getElementAt(i) as BitmapImage;
+					circle.transform.colorTransform = (i >= _startIndex && i <= _endIndex) ? new ColorTransform(redMultiplier, greenMultiplier,blueMultiplier) : new ColorTransform();
+				}
+			}
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				
+				for (var i:int = 0; i < _numCircles; i++){
+					var bmpImage:BitmapImage = new BitmapImage();
+					bmpImage.smooth = true;
+					bmpImage.source = circleEmpty;
+					addElement(bmpImage);
+				}
+				
+				if (getStyle("redMultiplier")){
+					redMultiplier =getStyle("redMultiplier");
+				}
+				if (getStyle("greenMultiplier")){
+					greenMultiplier =getStyle("greenMultiplier");
+				}
+				if (getStyle("blueMultiplier")){
+					blueMultiplier =getStyle("blueMultiplier");
+				}
+				
+				
+				
+				updateCircles();
+			}
+			
+			private function hexToRGB(hex:Number):Object
+			{
+				var rgbObj:Object = {
+					red: ((hex & 0xFF0000) >> 16),
+					green: ((hex & 0x00FF00) >> 8),
+					blue: ((hex & 0x0000FF))
+				};
+				
+				return rgbObj;
+			}
+			
+		]]>
+	</fx:Script>
+</s:HGroup>

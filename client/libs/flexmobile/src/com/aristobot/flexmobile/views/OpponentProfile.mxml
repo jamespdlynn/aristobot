@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:components="com.aristobot.flexmobile.components.*"
+		title="{vm.currentOpponent.username}"
+		initialize="init(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.as3srserrvice.model.Status;
+			import com.aristobot.data.ApplicationUser;
+			import com.aristobot.data.GameData;
+			import com.aristobot.data.LogData;
+			import com.aristobot.data.Opponent;
+			import com.aristobot.flexmobile.data.IconListData;
+			import com.aristobot.flexmobile.model.ActionContentManager;
+			import com.aristobot.flexmobile.model.AlertManager;
+			import com.aristobot.flexmobile.model.GameModel;
+			import com.aristobot.flexmobile.model.ImageManager;
+			import com.aristobot.flexmobile.model.SoundManager;
+			import com.aristobot.flexmobile.model.ViewController;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			import mx.collections.ArrayList;
+			import mx.events.FlexEvent;
+			
+			protected var srm:ServiceModel = ServiceModel.getInstance();
+			
+			protected var vc:ViewController = ViewController.getInstance();
+	
+			protected var vm:ViewModel = ViewModel.getInstance();
+			
+			protected var gm:GameModel = GameModel.getInstance();
+		
+			protected var opponentUser:ApplicationUser;
+			
+			
+			override public function set data(value:Object):void
+			{
+				if (value && value is Opponent){
+					vm.setCurrentOpponent(value as Opponent);
+					ActionContentManager.startLoading();
+					ServiceModel.getInstance().gameService.getAllGameUpdates(function (event:ResultEvent):void{
+						ActionContentManager.stopLoading();
+						if (vm.currentOpponent){
+							vm.loadExpiredOpponentGamesResult(event);
+						}					
+					}, null, true, vm.currentOpponent.username);
+				}
+				
+			}
+			protected function init(event:FlexEvent):void
+			{
+				if (vm.currentOpponent)
+				{
+					opponentUser = new ApplicationUser();
+					opponentUser.wins = vm.currentOpponent.applicationWins;
+					opponentUser.losses = vm.currentOpponent.applicationLosses;
+					opponentUser.ties = vm.currentOpponent.applicationTies;
+					userRecord.user = opponentUser;
+					
+					var gameOption:IconListData = vm.newGameOption;
+					
+					if (vm.gameList){
+						for each (var listData:IconListData in vm.gameList.source){
+							var gameData:GameData = listData.dataObj as GameData;
+							if (gameData && gameData.gameStatus == Status.GAME_RUNNING
+								&& (gameData.opposingPlayer && gameData.opposingPlayer.username == vm.currentOpponent.username)){
+									gameOption =  vm.currentGameOption;
+									gameOption.dataObj = gameData;
+									gameOption.decorator = null;
+									break;
+							}
+						}
+					}
+					
+					var gameHistoryOption:IconListData = vm.createOpponentListData(vm.currentOpponent);
+					gameHistoryOption.key = vm.opponentGamesOption.key;
+					gameHistoryOption.label = vm.opponentGamesOption.label;
+					gameHistoryOption.icon = vm.opponentGamesOption.icon;
+					gameHistoryOption.decorator = vm.opponentGamesOption.decorator;
+					
+					var convoAlert:Boolean = vm.currentOpponent.conversation && vm.currentOpponent.conversation.hasUnreadMessages;
+					vm.markProfileOptionAlert(vm.conversationOption, convoAlert);
+																
+					optionsList.dataProvider = new ArrayList([gameOption, gameHistoryOption, vm.conversationOption]);
+
+					
+				}else{
+					navigator.popView();
+				}
+			}
+			
+			protected function optionSelected():void
+			{
+				var option:IconListData = optionsList.selectedItem as IconListData;
+
+				switch (option.key)
+				{
+					case vm.newGameOption.key:
+						GameModel.getInstance().createNewGame(vm.currentOpponent);
+						break;
+					
+					case vm.currentGameOption.key:
+						var gameData:GameData = option.dataObj as GameData;
+						srm.gameService.getGame(gameData.gameKey, function (event:ResultEvent):void{
+							AlertManager.closeLoadWindow();
+							gm.init(event.resultObj as GameData);
+						});
+						AlertManager.displayLoadWindow("Loading Game...");
+						break;
+						
+					case vm.opponentGamesOption.key:
+						navigator.pushView(GameHistory);
+						break;
+					
+					case vm.conversationOption.key:
+						navigator.pushView(Chat, vm.currentOpponent.conversation);
+						break;
+					
+				}
+				
+				SoundManager.playSound(SoundManager.CLICK);
+				vc.resetList(optionsList);
+			}
+			
+		
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:navigationContent>
+		<components:RoboIconButton width="100%" height="100%" source="{ImageManager.BackIcon}" click="navigator.popView()"/>
+	</s:navigationContent>
+	
+	<s:titleContent>
+		<s:HGroup width="100%" verticalAlign="middle" gap="15">
+			<s:Label id="titleLabel" text="{title}" styleName="viewTitle"/>
+			<s:BitmapImage id="titleImage" width="48" height="48" smooth="true" source="{ImageManager.OpponentsIcon}"/>
+		</s:HGroup>
+	</s:titleContent>
+	
+	<s:VGroup width="100%" height="100%" gap="0">
+		<s:Group width="100%" height="120">
+			
+			<s:HGroup gap="8" height="100%" verticalAlign="middle" paddingLeft="20">
+				<components:IconRank userIcon="{vm.currentOpponent.icon}" iconContentLoader="{vm.iconCache}"/>
+				
+				<s:Label id="username" text="{vm.currentOpponent.username}" maxDisplayedLines="1" styleName="username">
+					<s:filters>
+						<s:DropShadowFilter color="0x000000" alpha="0.7" distance="5" blurX="4" blurY="4"/>
+					</s:filters>
+				</s:Label>
+			</s:HGroup>
+			
+			<components:RecordDisplay id="userRecord" verticalCenter="0" styleName="userRecord" right="0"/>
+			
+			<components:Line width="100%" bottom="0"/>
+		</s:Group>
+		
+		<s:List id="optionsList" width="100%" height="100%" change="optionSelected()" itemRenderer="com.aristobot.flexmobile.renderers.UserItemRenderer"/>
+	</s:VGroup>
+	
+</s:View>

@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:NavigatorContent xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:components="com.aristobot.admin.components.*"
+		 currentState="empty"
+		 addedToStage="init()"
+		 removedFromStage="destruct()"
+		 show="init()"
+		 hide="destruct()"
+		 keyDown="vgroupKeyDownHandler(event)"
+		 implements="com.aristobot.admin.managers.IView">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.admin.components.IconDisplayHolder;
+			import com.aristobot.admin.managers.AlertManager;
+			import com.aristobot.admin.windows.EditIconWindow;
+			import com.aristobot.admin.windows.LoadWindow;
+			import com.aristobot.as3srserrvice.events.FaultEvent;
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.as3srserrvice.services.IconService;
+			import com.aristobot.data.UserIcon;
+			
+			import mx.core.FlexGlobals;
+			
+			import spark.components.WindowedApplication;
+			import spark.events.IndexChangeEvent;
+			
+			protected var srm:ServiceModel = ServiceModel.getInstance();
+			
+			protected var windowApplication:WindowedApplication = FlexGlobals.topLevelApplication as WindowedApplication;
+			
+			[Bindable]
+			protected var selectedIcon:UserIcon;
+			
+			[Bindable]
+			protected var icons:ArrayList = new ArrayList();
+			
+			protected var changed:Boolean;
+			
+			protected var iconService:IconService;
+			
+			protected var currentUploadIndex:int;
+						
+			protected var loadWindow:LoadWindow;
+			
+			protected var clonedIcons:ArrayList;
+			
+			public function init(event:Event=null):void
+			{
+				windowApplication.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, nativeDragEnterHandler);
+				windowApplication.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, nativeDragDropHandler);
+			}
+			
+			public function destruct(event:Event=null):void
+			{
+				windowApplication.removeEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, nativeDragEnterHandler);
+				windowApplication.removeEventListener(NativeDragEvent.NATIVE_DRAG_DROP, nativeDragDropHandler);
+			}
+									
+			protected function nativeDragEnterHandler(event:NativeDragEvent):void
+			{
+				var dropFiles:Array = event.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
+				
+				for each (var file:File in dropFiles)
+				{
+					if (file.extension.toLowerCase() == "png"){
+						NativeDragManager.acceptDragDrop(windowApplication);
+						return;
+					}
+				}
+				
+				
+			}
+			
+			protected function nativeDragDropHandler(event:NativeDragEvent):void
+			{
+				var dropFiles:Array = event.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
+				
+				for each (var file:File in dropFiles)
+				{
+					if (file.extension.toLowerCase() == "png")
+					{
+						var path:String = (Capabilities.os.search("Mac") >= 0) ? "file://" + file.nativePath : file.nativePath;
+						
+						for each (var icon:UserIcon in icons.source){
+							if (icon.iconURL == path){
+								continue;
+							}
+						}
+						
+						createIcon(file);
+					}
+				}
+			}
+			
+			protected function createIcon(file:File):void
+			{
+				if (file.size > 10000){
+					AlertManager.displayNotificaitonWindow(file.name + " must be less than 10kb");
+					return;
+				}
+				
+				var loader:Loader = new Loader();
+				var path:String = (Capabilities.os.search("Mac") >= 0) ? "file://" + file.nativePath : file.nativePath;
+				
+				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, function(event:Event):void
+				{
+					var bitmapData:BitmapData = Bitmap(LoaderInfo(event.target).content).bitmapData;
+					
+					if (bitmapData.width != 72 || bitmapData.height != 72){
+						AlertManager.displayNotificaitonWindow(file.name + " must be 72x72 pixels");
+					}
+					else
+					{
+						var icon:UserIcon = new UserIcon();
+					
+						var key:String  = file.name.substring(0, file.name.length-4).replace("-", "_").replace(" ","_").replace(/[^A-Za-z_]+/g, "");
+						
+						do
+						{
+							var search:int = key.search(/[a-z](?=[A-Z])/g)+1;
+							
+							trace(search);
+							if (search > 0){
+								key = key.substring(0, search) + "_"+key.substring(search);
+							}
+						}
+						while (search > 0)
+							
+						icon.iconKey = key.toLowerCase();
+						
+						var split:Array = icon.iconKey.split("_");
+						
+						icon.iconName = "";
+						for each (var word:String in split)
+						{
+							if (icon.iconName.length > 0){
+								icon.iconName+=" ";
+							}
+							
+							var firstChar:String = word.substr(0, 1);
+							var restOfString:String = word.substr(1, word.length); 
+							
+							icon.iconName += firstChar.toUpperCase()+restOfString.toLowerCase(); 
+						}
+												
+						icon.level = levelCombo.selectedIndex+1;
+						icon.iconURL = path;
+						
+						icons.addItem(icon);
+						
+					}
+					
+					if (icons.length > 0){
+						currentState = "add";
+					}
+
+
+				}, false, 0, true);
+				
+			
+				loader.load(new URLRequest(path));
+
+			}
+			
+			protected function editIcon(event:Event=null):void
+			{
+				var editWindow:EditIconWindow = new EditIconWindow();
+				editWindow.icon = selectedIcon;
+				editWindow.addEventListener(EditIconWindow.NEXT, nextClickHandler, false, 0, true);
+				
+				AlertManager.displayCustomWindow(editWindow);
+			}
+			
+			protected function nextClickHandler(event:Event):void
+			{
+				var i:int = icons.getItemIndex(selectedIcon)+1;
+				
+				if (i > 0 && i < icons.length){
+					selectedIcon = icons.getItemAt(i) as UserIcon;
+					editIcon();
+				}
+				
+			}
+			
+			protected function removeIcon(event:Event=null):void
+			{
+				icons.removeItem(selectedIcon);
+				selectedIcon = null;
+				
+				if (icons.length == 0){
+					currentState = "empty";
+				}
+			}
+			
+			protected function doubleClickHandler(event:MouseEvent):void
+			{
+				if (event.target is IconDisplayHolder)
+				{
+					if (!changed){
+						editIcon();
+					}
+					else{
+						changed = false;
+					}
+				}
+			}
+			
+			protected function iconList_changeHandler(event:IndexChangeEvent):void
+			{
+				changed = true;
+			}
+
+			
+			protected function comboChangeHandler(event:IndexChangeEvent):void
+			{
+				for each(var icon:UserIcon in icons.source){
+					icon.level = levelCombo.selectedIndex+1;
+				}
+				
+			}
+			
+			protected function vgroupKeyDownHandler(event:KeyboardEvent):void
+			{
+				if (selectedIcon && event.keyCode == Keyboard.DELETE){
+					removeIcon();
+				}
+			}
+			
+			protected function addAllIcons(event:Event=null):void
+			{
+				if (icons.length > 0)
+				{
+					
+					clonedIcons = new ArrayList();
+					
+					for each (var icon:UserIcon in icons.source){
+						clonedIcons.addItem(icon);
+					}
+					
+					currentUploadIndex = -1;
+					
+					iconService = srm.iconService;
+					
+					loadWindow = new LoadWindow();
+					loadWindow.width = 600;
+					AlertManager.displayCustomWindow(loadWindow);
+					addNextIcon();
+				}
+			}
+			
+			protected function addNextIcon(event:Event=null):void
+			{
+				if (loadWindow.isOpen)
+				{
+					currentUploadIndex ++;
+					
+					if (currentUploadIndex < clonedIcons.length)
+					{
+						loadWindow.label = "Uploading Icon "+ (currentUploadIndex+1).toString() + " of "+clonedIcons.length+"...";
+						selectedIcon = clonedIcons.getItemAt(currentUploadIndex) as UserIcon;
+						
+						iconService.validateIcon(selectedIcon, uploadIcon, faultHandler);
+					}
+					else{
+						
+						
+						stopLoading();
+					}
+				}
+				
+			}
+			
+			protected function uploadIcon(event:ResultEvent):void
+			{
+				iconService.uploadIcon(new File(selectedIcon.iconURL), selectedIcon.iconKey, addIcon, faultHandler);
+			}
+			
+			protected function addIcon(event:ResultEvent):void
+			{
+				iconService.addIcon(selectedIcon, addIconResultHandler, faultHandler);
+			}
+			
+			protected function addIconResultHandler(event:ResultEvent):void
+			{
+				icons.removeItem(selectedIcon);
+				addNextIcon();
+			}
+			
+			protected function faultHandler(event:FaultEvent):void
+			{
+				if (event.faultCode == FaultEvent.UPLOAD_FAILED || event.faultCode.charAt(0) == "6"){
+					AlertManager.displayConfirmWindow(event.message + " ("+selectedIcon.iconKey+")", ["Continue","Stop"], addNextIcon, stopLoading);
+				}
+				else{
+					stopLoading();
+					srm.defaultFaultHandler(event);
+				}
+			}
+			
+			protected function stopLoading(event:Event=null):void
+			{
+				loadWindow.close();
+				iconService = null;
+				
+				var numIconsAdded:int = clonedIcons.length - icons.length;
+				
+				if (numIconsAdded > 0){
+					AlertManager.displayNotificaitonWindow(numIconsAdded + " icons successfully added.");
+				}
+				
+				if (icons.length == 0){
+					currentState = "empty";
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="empty"/>
+		<s:State name="add"/>
+	</s:states>
+	
+	<s:layout>
+		<s:VerticalLayout gap="0"/>
+	</s:layout>
+	
+	<s:Group id="iconsGroup" width="100%" height="100%" nativeDragEnter="nativeDragEnterHandler(event)" nativeDragDrop="nativeDragDropHandler(event)">
+		<s:Label text="Drag in 72x72 PNG files" fontSize="36" fontWeight="bold" verticalCenter="0" horizontalCenter="0" includeIn="empty">
+			<s:filters>
+				<s:DropShadowFilter alpha="0.6" distance="3" blurX="4" blurY="4"/>
+			</s:filters>
+		</s:Label>
+		
+		<s:List id="iconList" dataProvider="{icons}" width="100%" height="100%" contentBackgroundAlpha="0" selectedItem="@{selectedIcon}" click="doubleClickHandler(event)" 
+				change="iconList_changeHandler(event)" includeIn="add">
+			<s:layout>
+				<s:TileLayout horizontalAlign="center" verticalAlign="middle" paddingLeft="18" paddingRight="18" 
+							  paddingBottom="35" paddingTop="35" horizontalGap="40" verticalGap="40" requestedColumnCount="{Math.floor(width/125)}"/>
+			</s:layout>
+			<s:itemRenderer>
+				<fx:Component>
+					<components:SelectIconRenderer iconField="iconURL" iconSize="72"/>
+				</fx:Component>
+			</s:itemRenderer>
+		</s:List>
+	</s:Group>
+	
+	
+	<s:SkinnableContainer width="100%" height="80" skinClass="com.aristobot.admin.skins.ContainerBarSkin">
+		
+		
+		<s:HGroup height="100%" paddingLeft="25" gap="5" verticalAlign="middle" visible="{selectedIcon != null}" includeIn="add">
+			<s:Label text="{selectedIcon.iconName}" styleName="iconNameLabel level{selectedIcon.level}" fontWeight="bold"/>
+			<s:Label text="(Level {selectedIcon.level} Icon)" styleName="iconNameLabel level{selectedIcon.level}" fontWeight="normal"/>
+			
+			<s:Spacer width="5"/>
+			<s:Button label="Edit" styleName="goButton" click="editIcon(event)"/>
+			<s:Spacer width="5"/>
+			<s:Button label="Remove" styleName="stopButton" click="removeIcon(event)"/>
+		</s:HGroup>
+		
+		
+		<s:HGroup width="100%" height="100%" paddingRight="25" gap="10" verticalAlign="middle" horizontalAlign="right">
+		
+			<s:Button id="addAllButton" label="Add All" styleName="goButton" click="addAllIcons(event)" includeIn="add"/>
+			
+			<s:DropDownList width="200" id="levelCombo" selectedIndex="0" change="comboChangeHandler(event)">
+				<s:dataProvider>
+					<s:ArrayList>
+						<fx:String>Level 1 Icons</fx:String>
+						<fx:String>Level 2 Icons</fx:String>
+						<fx:String>Level 3 Icons</fx:String>
+						<fx:String>Level 4 Icons</fx:String>
+					</s:ArrayList>
+				</s:dataProvider>
+				
+			</s:DropDownList>
+			
+			
+		</s:HGroup>
+		
+		
+	</s:SkinnableContainer>
+	
+</s:NavigatorContent>

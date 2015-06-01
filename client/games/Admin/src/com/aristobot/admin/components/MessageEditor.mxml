@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TabNavigator xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				 xmlns:s="library://ns.adobe.com/flex/spark" 
+				 xmlns:mx="library://ns.adobe.com/flex/mx"
+				 change="navigatorChangeHandler(event)" 
+				 xmlns:components="com.aristobot.admin.components.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.data.SystemMessage;
+			
+			import mx.events.FlexEvent;
+			import mx.events.IndexChangedEvent;
+			
+			import spark.utils.TextFlowUtil;
+			
+			protected static const HTML_SPACER:String = "<p> </p>";
+			
+			[Bindable]
+			protected var previewHTMLText:String;
+			
+			
+			protected var _hasChanges:Boolean;
+			[Bindable]
+			public function get hasChanges():Boolean{
+				return _hasChanges;
+			}
+			public function set hasChanges(value:Boolean):void{
+				_hasChanges = value;
+			}
+			
+			protected var _message:SystemMessage = new SystemMessage();
+			[Bindable]
+			public function get message():SystemMessage{
+				return _message;
+			}
+			public function set message(value:SystemMessage):void{
+				_message = value;
+				
+				hasChanges =false;
+				selectedIndex = 0;
+			}
+			
+			public function quickValidate():Boolean
+			{
+				if (subjectInput.text.length == 0){
+					selectedIndex = 0;
+					editSubject.displayError("Please enter a Message Subject");
+					subjectInput.setFocus();
+					return false;
+				}
+				
+				if (bodyInput.text.length == 0){
+					selectedIndex = 0;
+					editBody.displayError("Please enter a Message Body");
+					bodyInput.setFocus();
+					return false;
+				}
+
+				try{
+					TextFlowUtil.importFromString(bodyInput.text);
+				}
+				catch (e:Error)
+				{
+					var errorString:String = e.message as String;
+					
+					var index:int = errorString.indexOf(": ");
+					if (index > 0){
+						editBody.displayError(errorString.substring(index+2));
+					}
+					else{
+						editBody.displayError(errorString);
+					}
+					
+					selectedIndex = 0;
+					bodyInput.setFocus();
+					
+					return false;
+				}
+
+				
+				return true;
+			}
+			
+			protected function createPreviewText():void
+			{
+				if (bodyInput && bodyInput.text)
+				{
+					var newBody:String;
+					var split:Array = bodyInput.text.split("</p><p>");
+					
+					if (split.length > 1)
+					{
+						for each (var subString:String in split){
+							newBody += subString+"</p>"+HTML_SPACER+"<p>";
+						}
+					}
+					else{
+						newBody = bodyInput.text;
+					}
+					
+					previewHTMLText = newBody;
+					
+				}
+				else{
+					previewHTMLText = "";
+				}
+			}
+			
+			protected function textFieldCreationCompleteHandler(event:FlexEvent):void
+			{
+				var style:StyleSheet = new StyleSheet();
+				
+				var styleObj:Object = new Object();
+				styleObj.fontSize = "bold";
+				styleObj.color = "#C41801";
+				styleObj.textDecoration = "underline";
+				style.setStyle("a", styleObj);
+				
+				previewBody.styleSheet = style;
+				
+			}
+			
+			protected function navigatorChangeHandler(event:IndexChangedEvent):void
+			{
+				if (event.newIndex == 1){
+					createPreviewText();
+				}
+				
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:NavigatorContent id="edit" label="Edit">
+		<s:VGroup width="100%" gap="25" paddingTop="25" paddingBottom="25" paddingRight="25" paddingLeft="25">
+			
+			<components:FormItem id="editSubject" width="100%" label="Subject" change="{hasChanges=true}">
+				<s:TextInput id="subjectInput" text="@{message.subject}" width="100%" maxChars="40" change="editSubject.onChange(event)"/>
+			</components:FormItem>
+			
+			<components:FormItem id="editBody" width="100%" height="100%" label="Body" change="{hasChanges=true}">
+				<s:TextArea id="bodyInput" text="@{message.body}" width="100%" height="100%" change="editBody.onChange(event)"
+							prompt="Acceptable HTML tags include: &lt;p&gt; &lt;br/&gt; &lt;b&gt; &lt;br/&gt; &lt;b&gt; &lt;a href=#&gt; &lt;ul&gt; &lt;li&gt;"/>
+			</components:FormItem>
+			
+		</s:VGroup>
+	</s:NavigatorContent>
+	
+	<s:NavigatorContent id="preview" label="Preview">
+		<s:Scroller width="100%" height="100%">
+			
+			<s:VGroup width="100%" gap="25" paddingTop="25" paddingBottom="25" paddingRight="25" paddingLeft="25">
+				<s:Label id="previewSubject" width="100%" text="{subjectInput.text}" fontSize="28" fontWeight="bold"/>
+				
+				<mx:Text id="previewBody" width="100%" htmlText="{previewHTMLText}" creationComplete="textFieldCreationCompleteHandler(event)"/>
+				
+			</s:VGroup>
+		</s:Scroller>
+	</s:NavigatorContent>
+</mx:TabNavigator>

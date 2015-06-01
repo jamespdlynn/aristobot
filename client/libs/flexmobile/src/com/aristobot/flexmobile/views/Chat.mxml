@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:comp="comp.*"
+		xmlns:data="data.*"
+		xmlns:renderers="com.aristobot.flexmobile.renderers.*"
+		xmlns:components="com.aristobot.flexmobile.components.*"
+		xmlns:mx="library://ns.adobe.com/flex/mx"
+		initialize="initializeHandler(event)" removedFromStage="removedFromStageHandler()"
+		title="Chat" viewActivate="viewActivateHandler(event)"
+		viewDeactivate="viewDeactivateHandler(event)"
+		creationComplete="creationCompleteHandler(event)">
+	
+
+	<fx:Declarations>
+		<mx:DateFormatter id="dateFormmater" formatString="MMM DD L:NN A"/>
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.as3srserrvice.events.FaultEvent;
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.as3srserrvice.model.Status;
+			import com.aristobot.data.ChatMessage;
+			import com.aristobot.data.Conversation;
+			import com.aristobot.data.OutgoingChatMessage;
+			import com.aristobot.flexmobile.data.ModifiedChatMessage;
+			import com.aristobot.flexmobile.model.ActionContentManager;
+			import com.aristobot.flexmobile.model.GameModel;
+			import com.aristobot.flexmobile.model.ImageManager;
+			import com.aristobot.flexmobile.model.SoundManager;
+			import com.aristobot.flexmobile.model.ViewController;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			import mx.collections.ArrayList;
+			import mx.events.FlexEvent;
+			
+			import spark.events.ViewNavigatorEvent;
+			import spark.transitions.CrossFadeViewTransition;
+			
+			protected static const UPDATE_TIMER_INTERVAL:Number = 5000;
+			
+			protected var srm:ServiceModel = ServiceModel.getInstance();
+			
+			protected var vm:ViewModel = ViewModel.getInstance();
+			
+			protected var vc:ViewController = ViewController.getInstance();
+			
+			protected var gm:GameModel = GameModel.getInstance();
+			
+			protected var conversation:Conversation;
+			
+			protected var conversationList:ArrayList;
+			
+			[Bindable]
+			protected var buttonEnabled:Boolean = false;
+			
+			protected var scrolled:Boolean = false;
+						
+			protected var updateTimer:Timer;
+			
+			protected var inputPadding:Number;
+			
+			override public function set data(value:Object):void{
+				conversation = value as Conversation;
+			}
+			
+			protected function initializeHandler(event:FlexEvent):void{
+				
+				updateTimer  = new Timer(UPDATE_TIMER_INTERVAL,0);
+				parseConversation();
+			}
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				inputChangeHandler()
+				messageInput.height = sendButton.height;
+			}
+			
+			protected function viewActivateHandler(event:ViewNavigatorEvent):void
+			{
+				
+				if (!srm.isAuthenticated() || !vc.dataLoaded){
+					vc.autologin();
+				}else{
+					updateTimer.addEventListener(TimerEvent.TIMER, pollForUpdate, false, 0, true);		
+					
+				}
+				
+				//stage.addEventListener(StageOrientationEvent.ORIENTATION_CHANGE, orientationChanged);
+			}
+			
+			protected function viewDeactivateHandler(event:ViewNavigatorEvent):void
+			{
+				ActionContentManager.stopLoading();
+				updateTimer.reset();
+				updateTimer.removeEventListener(TimerEvent.TIMER, pollForUpdate);
+				vm.markProfileOptionAlert(vm.conversationOption, false);
+				//stage.removeEventListener(StageOrientationEvent.ORIENTATION_CHANGE, orientationChanged);
+			}
+			
+			
+			
+			protected function removedFromStageHandler():void
+			{
+				conversation = null;
+				conversationList = null;
+				userChat.removeChildren();
+				opponentChat.removeChildren();
+				removeAllElements();
+			}
+			
+			protected function parseConversation():void
+			{
+				if (conversation && conversation.conversationKey && conversation.chatMessages)
+				{
+					var lastTimeAgo:Number = 0;
+					
+					conversationList = new ArrayList();
+					for each (var chat:ChatMessage in conversation.chatMessages)
+					{
+						var isCurrentUser:Boolean = (chat.username == vm.currentUser.username);
+						var dateText:String = null;;
+						
+						if (chat.dateSent)
+						{
+							
+							if (lastTimeAgo == 0 || lastTimeAgo - chat.dateSent.timeAgo > (30*60*1000))
+							{
+								var date:Date = new Date();
+								date.time -= chat.dateSent.timeAgo;
+								dateText = dateFormmater.format(date);
+							}
+		
+							
+							lastTimeAgo = chat.dateSent.timeAgo;
+						}
+						
+						conversationList.addItem(new ModifiedChatMessage(chat.username+": "+chat.message, dateText, isCurrentUser));
+					}
+					
+					if (conversation.hasUnreadMessages){
+						conversation.hasUnreadMessages = false;
+						srm.messageService.markConversationRead(conversation.conversationKey, markConversationReadResult);
+					}
+					else{
+						updateTimer.reset();
+						updateTimer.start();
+						
+						
+					}
+					
+					if (conversation.chatMessages.length == 0){
+						noChatMessage.visible = true;
+					}
+					
+					if (userChat){
+						userChat.dataProvider = conversationList;
+					}
+					
+					if (opponentChat){
+						opponentChat.dataProvider = conversationList;
+					}
+				
+					
+				}
+				else
+				{
+					noChatMessage.visible = true;
+				}
+			}
+			
+			protected function markConversationReadResult(event:ResultEvent):void
+			{
+				if (conversation){
+					conversation.hasUnreadMessages = false;
+					updateTimer.reset();
+					updateTimer.start();
+				}
+				
+			}
+			
+			
+			protected function inputChangeHandler():void
+			{	
+				sendButton.enabled = messageInput.text.length > 0;
+			}
+			
+			protected function sendMessage():void
+			{
+				updateTimer.reset();
+				
+				var chatMessage:OutgoingChatMessage = new OutgoingChatMessage();
+				chatMessage.conversationKey = conversation.conversationKey;
+				chatMessage.message = messageInput.text;
+				
+				messageInput.enabled = false;
+				sendButton.enabled = false;
+				
+				ActionContentManager.startLoading();
+				
+				var sendAsSystemMessage:Boolean = (!gm.currentGameData || gm.currentGameData.gameStatus == Status.GAME_FINISHED);
+				srm.messageService.sendChatMessage(chatMessage, sendAsSystemMessage, sendMessageResult, sendMessageFault);
+			}
+			
+			protected function sendMessageResult(event:ResultEvent):void
+			{
+				if (conversation){
+					srm.messageService.getConversation(conversation.conversationKey, conversationUpdateResult, conversationUpdateFault);
+				}
+				
+			}
+			
+			protected function sendMessageFault(event:FaultEvent):void
+			{
+				ActionContentManager.stopLoading();
+
+				if (conversation){
+					srm.defaultFaultHandler(event);
+					messageInput.enabled = true;
+					sendButton.enabled =true;
+				}	
+			}
+
+			protected function pollForUpdate(event:TimerEvent=null):void
+			{
+				updateTimer.reset();
+				
+				if (!srm.isAuthenticated() || !vc.dataLoaded){
+					vc.autologin();
+				}
+				else if (conversation){
+					srm.messageService.getConversationUpdate(conversation.conversationKey, conversationUpdateResult, conversationUpdateFault);
+				}	
+			}
+			
+			protected function conversationUpdateResult(event:ResultEvent):void
+			{
+				ActionContentManager.stopLoading();
+				
+				if (conversation){
+					var updatedConversation:Conversation = event.resultObj as Conversation;
+					if (updatedConversation && updatedConversation.conversationKey == conversation.conversationKey)
+					{
+						
+						SoundManager.playSound(SoundManager.BLOOP);
+						
+						conversation.chatMessages = updatedConversation.chatMessages;
+						conversation.hasUnreadMessages = updatedConversation.hasUnreadMessages;
+						parseConversation();
+						
+						messageInput.text = "";
+						messageInput.enabled = true;
+						noChatMessage.visible = false;
+						inputChangeHandler();
+					}
+					
+					updateTimer.reset();
+					updateTimer.start();
+				}
+				
+			}
+			
+			protected function conversationUpdateFault(event:FaultEvent):void
+			{
+				ActionContentManager.stopLoading();
+				
+				if (conversation){
+					updateTimer.reset();
+					updateTimer.start();
+				}
+				
+			}
+			
+			
+			protected function scrollerUpdateCompleteHandler(event:FlexEvent):void
+			{
+				chatGroup.verticalScrollPosition = chatGroup.measuredHeight - chatGroup.height;
+			}
+			
+			protected function popView():void
+			{
+				if (gm.currentGameData){
+					navigator.popView(new CrossFadeViewTransition());
+				}
+				else{
+					navigator.popView();
+				}
+				
+			}
+			
+			/*protected function orientationChanged(event:StageOrientationEvent):void{
+				var _itemRenderer:IFactory = opponentChat.itemRenderer;
+				opponentChat.itemRenderer = null;
+				opponentChat.itemRenderer = _itemRenderer;
+				
+				_itemRenderer = userChat.itemRenderer;
+				userChat.itemRenderer = null;
+				userChat.itemRenderer = _itemRenderer;
+			}*/
+			
+			
+			
+			
+			
+		]]>
+	</fx:Script>
+	
+	<s:titleContent>
+		<s:HGroup width="100%" gap="15" verticalAlign="middle">
+			<s:Label id="titleLabel" styleName="viewTitle" text="{title}"/>
+			<s:BitmapImage id="titleImage" width="48" height="48" smooth="true"
+						   source="{ImageManager.ChatIcon}"/>
+		</s:HGroup>
+	</s:titleContent>
+	
+	<s:navigationContent>
+		<components:RoboIconButton width="100%" height="100%" click="popView()"
+								   source="{ImageManager.BackIcon}"/>
+	</s:navigationContent>
+	
+	
+	
+	<s:VGroup width="100%" height="100%" gap="0">
+		
+		<s:SkinnableContainer bottom="0" width="100%" skinClass="com.aristobot.flexmobile.skins.ContainerBarSkin">
+
+			<s:HGroup width="100%" gap="10" paddingBottom="10" paddingLeft="10" paddingRight="10"
+					  paddingTop="10" verticalAlign="middle">
+				<s:TextArea id="messageInput" width="100%"
+							 change="inputChangeHandler()" maxChars="200" autoCapitalize="sentence" autoCorrect="true" heightInLines="1"/>
+				<components:RoboButton id="sendButton" label="Send"
+									   click="sendMessage()" enabled="false"
+									   styleName="specialButton"/>
+			</s:HGroup>
+		</s:SkinnableContainer>
+		
+		<s:Scroller id="scroller" width="100%" height="100%"
+					updateComplete="scrollerUpdateCompleteHandler(event)">
+			<s:Group id="chatGroup" width="100%" height="100%">
+				
+				
+				
+				<s:DataGroup id="opponentChat" width="100%" height="100%"
+							 dataProvider="{conversationList}"
+							 itemRenderer="com.aristobot.flexmobile.renderers.OpponentChatBubbleItemRenderer">
+					<s:layout>
+						<s:VerticalLayout gap="24" horizontalAlign="left" paddingBottom="24"
+										  paddingLeft="15" paddingTop="24"/>
+					</s:layout>
+				</s:DataGroup>
+				
+				<s:DataGroup id="userChat" width="100%" height="100%"
+							 dataProvider="{conversationList}"
+							 itemRenderer="com.aristobot.flexmobile.renderers.UserChatBubbleItemRenderer">
+					<s:layout>
+						<s:VerticalLayout gap="24" horizontalAlign="right" paddingBottom="24"
+										  paddingRight="15" paddingTop="24"/>
+					</s:layout>
+				</s:DataGroup>
+			</s:Group>
+			
+			
+		</s:Scroller>
+		
+		
+		
+	</s:VGroup>
+	
+	<s:Label id="noChatMessage" visible="false" top="150" horizontalCenter="0" styleName="alertLabel"
+			 text="No recent chat messages">
+		<s:filters>
+			<s:DropShadowFilter alpha="0.7" blurX="4" blurY="4" color="0x000000" distance="5"/>
+		</s:filters>
+	</s:Label>
+	
+	
+	
+	
+
+	
+</s:View>

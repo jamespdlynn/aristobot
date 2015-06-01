@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 cacheAsBitmap="true"
+		 skinClass="com.aristobot.flexmobile.skins.ContainerBarSkin"
+		 creationComplete="creationCompleteHandler()">
+
+	<fx:Metadata>
+		[Style(name="chromeColor", inherit="yes", type="uint")]
+	</fx:Metadata>
+	
+	<fx:Declarations>
+		<s:Move id="moveUp" target="{this}" duration="500" startDelay="100" yFrom="-1" yTo="{-height-5}" effectEnd="showMessage()"/>
+		<s:Move id="moveDown" target="{this}"  duration="500" startDelay="100" yFrom="{-height-5}" yTo="-1"/>
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.flexmobile.model.GameModel;
+					
+			private var _message:String;
+			
+			private var _hidden:Boolean;
+			
+			private var gm:GameModel = GameModel.getInstance();
+			
+			protected function creationCompleteHandler():void
+			{
+				y = _hidden ? -height-5 : -1; 
+				updateMessageLabel();
+			}
+			
+			public function set message(value:String):void
+			{
+				_message = value;
+				updateMessageLabel();
+			}
+			
+			public function set hidden(value:Boolean):void
+			{
+				_hidden = value;
+				y = _hidden ? -height-5 : -1; 
+			}
+			
+			public function update(message:String):void
+			{
+				_message = message;
+				_hidden ? showMessage() : hideMessage();
+			}
+			
+			protected function showMessage():void
+			{
+				updateMessageLabel();
+				_hidden = false;
+				moveDown.play();
+			}
+			
+			protected function hideMessage():void
+			{
+				_hidden = true;
+				moveUp.play();
+			}
+			
+			protected function updateMessageLabel():void
+			{
+				if (messageLabel){
+					messageLabel.text = _message;
+				}
+			}
+
+			
+			
+		]]>
+	</fx:Script>
+	
+	<s:Label id="messageLabel" width="100%" verticalCenter="0" textAlign="center" creationComplete="updateMessageLabel()" styleName="messageBarLabel"/>
+	
+	<s:filters>
+		<s:DropShadowFilter distance="3" color="#000000" alpha="0.5" angle="90"/>
+	</s:filters>
+</s:SkinnableContainer>
+

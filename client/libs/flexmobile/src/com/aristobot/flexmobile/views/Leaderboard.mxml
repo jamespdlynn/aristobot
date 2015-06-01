@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:components="com.aristobot.flexmobile.components.*"
+		title="Leaderboard"
+		viewActivate="viewActivateHandler()" xmlns:renderers="com.aristobot.flexmobile.renderers.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.data.UsersWrapper;
+			import com.aristobot.flexmobile.data.IconListData;
+			import com.aristobot.flexmobile.model.AlertManager;
+			import com.aristobot.flexmobile.model.ImageManager;
+			import com.aristobot.flexmobile.model.SoundManager;
+			import com.aristobot.flexmobile.model.ViewController;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			import spark.events.ViewNavigatorEvent;
+			
+			protected var vm:ViewModel = ViewModel.getInstance();
+			
+			protected var srm:ServiceModel = ServiceModel.getInstance();
+						
+			protected var opponentUsername:String;
+		
+			protected function viewActivateHandler():void
+			{
+				if (!srm.isAuthenticated()){
+					ViewController.getInstance().autologin();
+					return;
+				}
+				
+				if (!vm.leaderBoardData || !vm.leaderBoardData.length){
+					AlertManager.displayNotificaitonWindow("Invalid Leaderboard Data");
+				}
+				
+				reset();
+			}
+			
+			
+			protected function changeHandler():void
+			{				
+				SoundManager.playSound(SoundManager.CLICK);
+				
+				var listData:IconListData = leaderboardList.selectedItem as IconListData;
+								
+				if (!listData || listData.key == vm.currentUser.username){
+					navigator.popView();
+					return;
+				}
+				
+				loadOpponent(listData.key);
+				
+			}
+
+			
+			protected function loadOpponent(opponentUsername:String):void
+			{
+				srm.opponentService.getOpponent(opponentUsername, loadOpponentResult, reset);
+				AlertManager.displayLoadWindow("Loading Opponent...");
+			}
+			
+			protected function loadOpponentResult(event:ResultEvent):void
+			{
+				AlertManager.closeLoadWindow();
+				opponentUsername = null;
+				
+				navigator.pushView(OpponentProfile, event.resultObj, reset);
+			}
+			
+			protected function reset(event:Event = null):void{
+				AlertManager.closeLoadWindow();
+				if (leaderboardList){
+					leaderboardList.enabled = true;
+					setTimeout(function():void{leaderboardList.selectedIndex = -1},24);
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:navigationContent>
+		
+		
+		<components:RoboIconButton width="100%" height="100%" source="{ImageManager.BackIcon}" click="navigator.popView()"/>
+	</s:navigationContent>
+	
+	<s:titleContent>
+		
+		<s:HGroup width="100%" verticalAlign="middle" gap="15">
+			<s:Label id="titleLabel" text="{title}" styleName="viewTitle"/>
+			<s:BitmapImage id="titleImage" width="48" height="48" smooth="true" source="{ImageManager.VictoryIcon}"/>
+		</s:HGroup>
+	</s:titleContent>
+
+	<s:List id="leaderboardList" width="100%" top="-1" bottom="0" dataProvider="{vm.leaderBoardData}"
+			change="changeHandler()">
+		<s:itemRenderer>
+			<fx:Component>
+				<renderers:UserItemRenderer useRatingsDisplay="true"/>
+			</fx:Component>
+		</s:itemRenderer>
+	</s:List>
+</s:View>

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<windows:AlertWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:components="com.aristobot.flexmobile.components.*"
+		xmlns:windows="com.aristobot.flexmobile.components.windows.*"
+		initialize="initializeHandler(event)"
+		closeEnabled="true">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.data.DeviceData;
+			import com.aristobot.flexmobile.model.AlertManager;
+			import com.aristobot.flexmobile.model.ImageManager;
+			import com.aristobot.flexmobile.model.SoundManager;
+			import com.aristobot.flexmobile.model.ViewController;
+			import com.aristobot.flexmobile.model.ViewModel;
+			import com.aristobot.flexmobile.views.AccountSettings;
+			
+			import mx.events.FlexEvent;
+			
+			private var vm:ViewModel = ViewModel.getInstance();
+			
+			private var vc:ViewController = ViewController.getInstance();
+			
+			protected function initializeHandler(event:FlexEvent):void
+			{
+				var state:String = (vm.currentUser) ? "loggedIn" : "loggedOut";
+				currentState = vm.debugEnabled ? state+"Debug" : state+"Normal";
+			}
+			
+			protected function soundOptionChange(event:Event):void
+			{
+				if (soundSwitch.selected){
+					vc.deviceManager.enableSound();
+				}
+				else{
+					vc.deviceManager.disableSound();
+				}
+				
+				SoundManager.playSound(SoundManager.CLICK);
+			}
+			
+			protected function notificationsOptionChange(event:Event):void
+			{
+				if (notificationsSwitch.selected)
+				{
+					if (!vc.deviceManager.notificationsSupported()){
+						AlertManager.displayNotificaitonWindow("Push notifications are not currently supported on this device.");
+						notificationsSwitch.selected = false;
+					}
+					else {
+						if (vm.deviceType == DeviceData.ANDROID){
+							AlertManager.displayNotificaitonWindow("Warning: If you are using an Amazon device such as the Kindle Fire, push notifications are not currently supported. Please contact Aristobot Games for more details.");
+						}
+						
+						vc.deviceManager.registerPushNotifications();
+	
+					}
+				}
+				else{
+					vc.deviceManager.unregisterPushNotifications();
+				}
+				
+				vm.pushNotificationsEnabled = notificationsSwitch.selected;
+			}
+			
+			protected function servicesOptionChange(event:Event):void
+			{
+				vm.useTestServices = servicesSwitch.selected;
+				vc.autologin();
+			}
+
+
+			protected function accountButtonClick(event:MouseEvent):void
+			{
+				close();
+				vc.navigator.popToFirstView();
+				vc.navigator.pushView(AccountSettings);
+			}
+			
+			protected function logoutButtonClick(event:MouseEvent):void
+			{
+				close();
+				AlertManager.displayConfirmWindow("Are you sure you want to logout?", ["Yes", "No"], vc.logout);
+			}
+			
+			
+			
+		]]>
+	</fx:Script>
+	
+	<windows:layout>
+		<s:VerticalLayout gap="25" horizontalAlign="center"/>
+	</windows:layout>
+	
+	<windows:states>
+		<s:State name="loggedOutNormal" stateGroups="loggedOut"/>
+		<s:State name="loggedInNormal" stateGroups="loggedIn"/>
+		<s:State name="loggedOutDebug" stateGroups="loggedOut, debug"/>
+		<s:State name="loggedInDebug" stateGroups="loggedIn, debug"/>
+	</windows:states>
+	
+	
+	<!--<s:HGroup width="100%" verticalAlign="middle" horizontalAlign="center" gap="15">
+		<s:Label text="Settings" styleName="alertTitle"/>
+		<s:BitmapImage id="titleImage" width="48" height="48" smooth="true" source="{ImageManager.SettingsIcon}"/>
+	</s:HGroup>-->
+	
+	
+	
+	
+	<s:Scroller width="100%" height="100%">
+		<s:VGroup width="100%" height="100%" gap="25" horizontalAlign="center">
+			<s:HGroup verticalAlign="middle" gap="8">
+				<s:BitmapImage source="{ImageManager.SoundOnIcon}" smooth="true" width="48" height="48"/>
+				<s:Label  id="soundLabel" width="{notificationsLabel.width}" text="Sound" styleName="alertLabel" paddingRight="5"/>
+				<s:ToggleSwitch id="soundSwitch" change="soundOptionChange(event)" selected="{vm.soundEnabled}"/>
+			</s:HGroup>
+			
+			
+			<s:HGroup verticalAlign="middle" gap="8">
+				<s:BitmapImage source="{ImageManager.AlertIcon}" smooth="true" width="48" height="48"/>
+				<s:Label id="notificationsLabel" text="Notifications" styleName="alertLabel" paddingRight="5"/>
+				<s:ToggleSwitch id="notificationsSwitch" change="notificationsOptionChange(event)" selected="{vm.pushNotificationsEnabled &amp;&amp; vm.pushNotificationToken}"/>
+			</s:HGroup>
+			
+			
+			
+			<s:HGroup verticalAlign="middle" gap="8" includeIn="debug">
+				<s:BitmapImage source="{ImageManager.MenuIcon}" smooth="true" width="48" height="48"/>
+				<s:Label id="servicesLabel" width="{notificationsLabel.width}" text="Debug Mode" styleName="alertLabel" paddingRight="5"/>
+				<s:ToggleSwitch id="servicesSwitch" change="servicesOptionChange(event)" selected="{vm.useTestServices}"/>
+			</s:HGroup>
+			
+			
+			
+			<components:RoboIconButton id="accountButton" width="100%" label="Account" source="{ImageManager.SettingsIcon}" iconSize="48" gap="15"
+									   styleName="goButton" click="accountButtonClick(event)" includeIn="loggedIn" fontWeight="bold"/>
+			
+			<components:RoboIconButton id="helpButton" width="100%" label="Help"  source="{ImageManager.HelpIcon}" iconSize="48" gap="15"
+								   styleName="specialButton" click="navigateToURL(new URLRequest(vm.applicationData.supportURL))"/>
+			
+			<components:RoboIconButton id="logoutButton" width="100%" label="Logout"  source="{ImageManager.DeleteIcon}" iconSize="48" gap="15"
+								   styleName="stopButton" click="logoutButtonClick(event)" includeIn="loggedIn"/>
+			
+			
+			
+		</s:VGroup>
+		
+		
+	</s:Scroller>
+	
+	<s:Label width="100%" textAlign="right" text="{vm.applicationName} {vm.currentVersion}" fontSize="16" fontWeight="bold"/>
+</windows:AlertWindow>

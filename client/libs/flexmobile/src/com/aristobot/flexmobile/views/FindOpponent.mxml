@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:components="com.aristobot.flexmobile.components.*"
+		title="Find Opponent" xmlns:mx="library://ns.adobe.com/flex/mx"
+		stateChangeComplete="stateChangeCompleteHandler(event)">
+	
+	<fx:Declarations>
+		<mx:EmailValidator id="emailValidator" source="{emailInput}" property="text" required="true"/>
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.data.GameData;
+			import com.aristobot.data.User;
+			import com.aristobot.data.UsersWrapper;
+			import com.aristobot.flexmobile.data.IconListData;
+			import com.aristobot.flexmobile.model.ActionContentManager;
+			import com.aristobot.flexmobile.model.AlertManager;
+			import com.aristobot.flexmobile.model.GameModel;
+			import com.aristobot.flexmobile.model.ImageManager;
+			import com.aristobot.flexmobile.model.SoundManager;
+			import com.aristobot.flexmobile.model.ViewController;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			import flash.utils.setTimeout;
+			
+			import mx.collections.ArrayList;
+			import mx.events.FlexEvent;
+			
+			protected var srm:ServiceModel = ServiceModel.getInstance();
+			protected var vm:ViewModel = ViewModel.getInstance();
+			protected var vc:ViewController = ViewController.getInstance();
+			protected var gm:GameModel = GameModel.getInstance();
+			
+			[Bindable]
+			private var userData:ArrayList;
+			
+			private var currentKeyword:String;
+			
+			private var autoCreateGame:Boolean = false;
+			
+			override public function set data(value:Object):void{
+				autoCreateGame = value;
+			}
+						
+			protected function userInputChange(event:Event=null):void
+			{
+				currentKeyword = userInput.text;
+				
+				if (currentKeyword.length > 0){
+					ActionContentManager.startLoading();
+					srm.userService.searchForUsers(currentKeyword, searchResult);
+					emptyMessage.visible = false;
+				}
+				else{
+					ActionContentManager.stopLoading();
+					userData = null;
+					emptyMessage.text = "Begin typing a username in the input above";
+					emptyMessage.visible = true;
+				}
+			}
+			
+			protected function emailInputChange(event:Event=null):void{
+
+				currentKeyword = emailInput.text;
+				
+				ActionContentManager.stopLoading();
+				userData = null;
+				
+				if (emailInput.text.length == 0){
+					emptyMessage.text = "Type an email address in the input above or click the button to select one from your device's contacts.";
+					emptyMessage.visible = true;
+				}else{
+					emptyMessage.visible = false;
+				}
+				
+			}
+				
+			
+			protected function emailInputSearch(event:Event=null):void
+			{
+				if (currentKeyword.length > 0){
+				
+					if (emailValidator.validate().results){
+						emptyMessage.text = "Invalid Email Address";
+						emptyMessage.visible = true;
+						
+					}else{
+						emptyMessage.visible = false;
+						ActionContentManager.startLoading();
+						srm.userService.searchForUsersByEmail(currentKeyword, searchResult);
+						stage.focus = null;
+					}
+					
+					
+					
+				}
+			
+			}
+			
+			protected function searchResult(event:ResultEvent):void{
+				var wrapper:UsersWrapper = event.resultObj as UsersWrapper;
+				
+				if (ActionContentManager.isLoading()){
+					userData = vm.createUserList(wrapper.users);
+				}
+				
+				if (wrapper.keyword == currentKeyword){
+					ActionContentManager.stopLoading();
+					
+					if (userData.length == 0){
+						emptyMessage.text = "No matching users";
+						emptyMessage.visible = true;
+					}
+				}
+			}
+						
+			
+			protected function userSelectHandler(event:Event):void
+			{				
+				SoundManager.playSound(SoundManager.CLICK);
+				
+				var listData:IconListData = userList.selectedItem as IconListData;
+				
+				if (listData.dataObj){
+					if (autoCreateGame){
+						gm.createNewGame(listData.dataObj as User);
+					}else{
+						loadOpponent(listData.dataObj as User);
+					}
+					
+				}
+				
+				userList.enabled = true;
+				setTimeout(function():void{userList.selectedIndex = -1},24);
+				
+			}
+			
+			
+			protected function loadOpponent(user:User):void{
+				srm.opponentService.getOpponent(user.username, function (event:ResultEvent):void{
+					AlertManager.closeLoadWindow();
+					navigator.popView();
+					navigator.pushView(OpponentProfile, event.resultObj);
+				});
+			}
+			
+			
+			
+			protected function stateChangeCompleteHandler(event:FlexEvent):void
+			{
+				if (currentState == "username"){
+					userInput.text = "";
+					userInputChange();
+				}else{
+					emailInput.text = "";
+					emailInputChange();
+				}
+				
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="username"/>
+		<s:State name="email"/>
+	</s:states>
+	
+	<s:layout>
+		<s:VerticalLayout gap="0" />
+	</s:layout>
+	
+	<s:navigationContent>
+		<components:RoboIconButton width="100%" height="100%" source="{ImageManager.BackIcon}" click="navigator.popView()"/>
+	</s:navigationContent>
+
+	
+	<s:titleContent>
+		<s:HGroup width="100%" verticalAlign="middle" gap="15">
+			<s:Label id="titleLabel" text="{title}" styleName="viewTitle"/>
+			<s:BitmapImage id="titleImage" width="48" height="48" smooth="true" source="{ImageManager.SearchIcon}"/>
+		</s:HGroup>
+	</s:titleContent>
+		
+	
+	<s:SkinnableContainer bottom="0" width="100%" skinClass="com.aristobot.flexmobile.skins.ContainerBarSkin">
+		
+		<s:layout>
+			<s:HorizontalLayout gap="10" paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"/>
+		</s:layout>
+		
+			
+		<components:RoboTextInput id="userInput" width="100%" prompt="Enter Username" change="userInputChange(event)" includeIn="username"/>
+					
+		<components:EmailContactInput id="emailInput" width="100%" prompt="Enter Email Address" change="emailInputChange(event)" returnKeyLabel="search" enter="emailInputSearch(event)" includeIn="email"/>
+		
+		
+		
+	</s:SkinnableContainer>
+	
+	
+	
+	
+	<s:Group width="100%" height="100%">
+		
+		
+		<s:List id="userList" width="100%" height="100%" 
+				itemRenderer="com.aristobot.flexmobile.renderers.UserItemRenderer" dataProvider="{userData}" change="userSelectHandler(event)"/>
+				
+		<s:Label id="emptyMessage" width="80%" textAlign="center" horizontalCenter="0" top="80" visible="false" fontWeight="bold">
+			<s:filters>
+				<s:DropShadowFilter color="0x000000" alpha="0.7" distance="5" blurX="4" blurY="4"/>
+			</s:filters>
+		</s:Label>
+				 
+	</s:Group>
+	
+
+	
+	<s:HGroup width="100%" gap="-1">
+		<s:ToggleButton width="50%" label="Search By Username" selected.username="true" selected.email="false" mouseEnabled.username="false" click="setCurrentState('username')" minHeight="{userInput.height}"/>
+		<s:ToggleButton width="50%" label="Search By Email" selected.username="false" selected.email="true" mouseEnabled.email="false" click="setCurrentState('email')" minHeight="{userInput.height}"/>
+	</s:HGroup>
+
+	
+	
+</s:View>

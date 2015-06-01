@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<windows:AlertWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark"
+					 xmlns:windows="com.aristobot.admin.windows.*"
+					 xmlns:components="com.aristobot.admin.components.*"
+					 currentState="normal"
+					 creationComplete="creationCompleteHandler(event)"
+					 width="500"
+					 keyDown="keyboardDownHandler(event)">
+	
+	<windows:layout>
+		<s:VerticalLayout horizontalAlign="center" gap="25"/>
+	</windows:layout>
+	
+	
+	<fx:Metadata>
+		[Event(name="success", type="flash.events.Event")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[	
+			import com.aristobot.as3srserrvice.events.FaultEvent;
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.data.UserCredentials;
+			
+			import mx.events.FlexEvent;
+			
+			public static const SUCCESS:String = "success";
+			
+			
+			private var srm:ServiceModel = ServiceModel.getInstance();
+			
+			private var _username:String;
+			[Bindable]
+			public function get username():String{
+				return _username;
+			}
+			public function set username(value:String):void{
+				_username = value;
+			}
+			
+			private var _deviceId:String;
+			public function set deviceId(value:String):void{
+				_deviceId = value;
+			}
+			
+			public function signIn():void
+			{
+				if (quickValidation())
+				{
+					var creds:UserCredentials = UserCredentials.create(_deviceId, username, passwordInput.text);
+					srm.authenticationService.login(creds, signInSuccess, signInFault);
+					currentState = "authenticating";
+				}
+			}
+			
+			protected function quickValidation():Boolean
+			{
+				if (userInput.text.length == 0){
+					userInput.displayError("Please enter a username");
+					userInput.setFocus();
+					return false;
+				}
+				else if (passwordInput.text.length == 0){
+					passwordInput.displayError("Please enter a password");
+					passwordInput.setFocus();
+					return false;
+				}
+				
+				return true;
+			}
+			
+			private function signInSuccess(event:ResultEvent):void
+			{
+				currentState = "normal";
+				dispatchEvent(new Event(SUCCESS));
+			}
+			
+			private function signInFault(event:FaultEvent):void
+			{
+				currentState = "normal";
+				
+				if (event.faultCode == FaultEvent.LOGIN_FAILED){
+					passwordInput.clear();
+					passwordInput.displayError("Username or Password is incorrect");
+				}
+				else{
+					srm.defaultFaultHandler(event);
+				}
+				
+			}
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				if (username && username.length){
+					passwordInput.setFocus();
+				}
+				else{
+					userInput.setFocus();
+				}
+				
+			}
+			
+			protected function keyboardDownHandler(event:KeyboardEvent):void
+			{
+				if (event.keyCode == Keyboard.ENTER && currentState == 'normal'){
+					signIn();
+				}
+				
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<windows:states>
+		<s:State name="normal"/>
+		<s:State name="authenticating"/>
+	</windows:states>
+	
+	
+	<s:Label width="100%" textAlign="left" text="Sign In" styleName="alertTitle"/>
+	
+	<components:FormTextInput width="100%" id="userInput" label="Username" text="@{username}" tabIndex="0"/>
+	
+	<components:FormTextInput width="100%" id="passwordInput" label="Password" displayAsPassword="true" tabIndex="1"/>
+	
+	<s:Group width="100%">
+		<s:Button id="signInButton" right="0" label="Sign In" click="signIn()" styleName="goButton" includeIn="normal"/>
+		<components:BusyIndicator right="20" includeIn="authenticating" width="44" height="44"/>
+	</s:Group>
+	
+	
+	
+</windows:AlertWindow>

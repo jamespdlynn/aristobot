@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" xmlns:components="com.aristobot.chess.components.*"
+		creationComplete="creationCompleteHandler(event)"
+		mouseEnabled="false"
+		mouseChildren="false">
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.chess.data.CapturedIconVO;
+			import com.aristobot.chess.pieces.ChessPiece;
+			
+			import mx.events.FlexEvent;
+			
+			import spark.skins.mobile.StageTextInputSkin;
+			import spark.skins.mobile.supportClasses.StageTextSkinBase;
+						
+			StageTextSkinBase
+			
+			StageText 
+			protected var capturedIconVOs:Vector.<CapturedIconVO>;
+			
+			protected var created:Boolean = false;
+
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				created = true;
+				createCapturedPieces();
+			}
+			
+			public function parseCapturedPieces(chessPieces:Vector.<ChessPiece>):void
+			{				
+				capturedIconVOs = new Vector.<CapturedIconVO>;
+				var currentPiece:CapturedIconVO;
+				
+				for each (var piece:ChessPiece in chessPieces)
+				{
+					if (!currentPiece || currentPiece.type != piece.type){
+						currentPiece = new CapturedIconVO(piece.type, piece.imageSource, 1, piece.isWhite);
+						capturedIconVOs.push(currentPiece);
+					}
+					else{
+						currentPiece.numCaptured++;
+					}
+				}
+				
+				createCapturedPieces();
+			}
+			
+			protected function createCapturedPieces():void
+			{
+				if (!capturedIconVOs || !created) return;
+								
+				for (var i:int = 0; i <5; i++)
+				{
+					if (i < numElements)
+					{
+						if (i < capturedIconVOs.length){
+							(getElementAt(i) as CapturedPiece).capturedIconVO = capturedIconVOs[i];
+						}
+						else{
+							removeElementAt(i);
+						}
+					}
+					else if (i < capturedIconVOs.length){
+						var capturedPiece:CapturedPiece = new CapturedPiece();
+						capturedPiece.x = i*(width/5);
+						capturedPiece.width = width/5;
+						capturedPiece.height = height;
+						capturedPiece.capturedIconVO = capturedIconVOs[i];
+						addElement(capturedPiece);
+					}
+										
+				}
+			}
+			
+			public function reset():void
+			{
+				capturedIconVOs = null;
+				removeAllElements();
+			}
+			
+		]]>
+	</fx:Script>
+	
+</s:Group>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 mouseDown="{rect.visible=true}"
+		 mouseUp="{rect.visible=false}"
+		 mouseOut="{rect.visible=false}"
+		 click="{SoundManager.playSound(SoundManager.CLICK)}">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.flexmobile.model.SoundManager;
+			protected var _label:String;
+
+			[Bindable]
+			public function get label():String
+			{
+				return _label;
+			}
+
+			public function set label(value:String):void
+			{
+				_label = value;
+			}
+			
+
+		]]>
+	</fx:Script>
+
+	<s:Rect id="rect" width="100%" height="100%" radiusX="8" radiusY="8" visible="false">
+		<s:fill>
+			<s:SolidColor color="{getStyle('color')}" alpha="0.3"/>
+		</s:fill>
+	</s:Rect>
+	
+	<s:Label text="{label}" color="{getStyle('color')}" fontWeight="bold" textDecoration="underline" left="15" right="15" top="15" bottom="15"/>
+</s:Group>

@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:renderers="com.aristobot.flexmobile.renderers.*"
+		xmlns:skins="com.aristobot.flexmobile.skins.*" 
+		xmlns:components="com.aristobot.flexmobile.components.*"
+		creationComplete="creationCompleteHandler(event)"
+		viewActivate="activate()"
+		viewDeactivate="deactivate()"
+		title="Select Icon">
+	
+		
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.data.IconUnlockInfo;
+			import com.aristobot.data.UserIcon;
+			import com.aristobot.flexmobile.data.RegistrationCredentials;
+			import com.aristobot.flexmobile.model.ActionContentManager;
+			import com.aristobot.flexmobile.model.ImageManager;
+			import com.aristobot.flexmobile.model.ViewController;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			import mx.events.FlexEvent;
+			
+			private var srm:ServiceModel = ServiceModel.getInstance();
+			
+			private var vm:ViewModel = ViewModel.getInstance();
+			
+			private var vc:ViewController = ViewController.getInstance();
+			
+			[Bindable]
+			private var selectedIcon:UserIcon;
+			
+			private var chosenIcon:UserIcon;
+			
+			[Bindable]
+			private var iconUnlockInfo:IconUnlockInfo;
+			
+			private var registrationCreds:RegistrationCredentials;
+			
+			private var requestedColumnCount:int;
+			
+
+			
+
+			override public function set data(value:Object):void
+			{
+				if (value && value is RegistrationCredentials){
+					registrationCreds = value as RegistrationCredentials;
+					
+					if (registrationCreds.icon){
+						selectedIcon = registrationCreds.icon;
+					}
+				}
+				
+			}
+
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				var columnCount:int =  Math.floor(this.width/120);
+				var padding:Number = 18+((this.width%120)/2);
+				
+				tileLayout.requestedColumnCount = columnCount;
+				tileLayout.paddingTop = padding;
+				tileLayout.paddingLeft = padding;
+				tileLayout.paddingBottom = padding;
+				tileLayout.paddingRight = padding;
+				
+				
+				if (vm.currentUser && vm.currentUser.icon && vm.icons){	
+					title = "My Icons";
+				}
+			}
+			
+			protected function activate():void
+			{	
+				vm.addEventListener(ViewModel.CURRENT_USER_CHANGED, setIconUnlockInfo, false, 0, true);
+			}
+			
+			protected function deactivate():void{
+				vm.markProfileOptionAlert(vm.iconsOption, false);
+				vm.removeEventListener(ViewModel.CURRENT_USER_CHANGED, setIconUnlockInfo);
+			}
+			
+
+			
+			
+			protected function setIconUnlockInfo(event:Event=null):void
+			{
+				ActionContentManager.stopLoading();
+				
+				if (vm.currentUser && unlockMeter)
+				{
+					var newUnlockPercent:Number = vm.currentUser.unlockPercent;
+					
+					if (!iconUnlockInfo || iconUnlockInfo.newUnlockPercent != newUnlockPercent){
+						
+						var oldUnlockPercent:Number = (iconUnlockInfo != null) ? iconUnlockInfo.oldUnlockPercent : newUnlockPercent;
+						
+						iconUnlockInfo = new IconUnlockInfo();
+						iconUnlockInfo.hasUnlockedIcon = false;
+						iconUnlockInfo.oldUnlockPercent = oldUnlockPercent;
+						iconUnlockInfo.newUnlockPercent = newUnlockPercent;
+						
+						unlockMeter.data = iconUnlockInfo;
+					}
+				}
+			}
+			
+			protected function select():void
+			{
+				chosenIcon = selectedIcon;
+				navigator.popView();
+			}
+				
+			override public function createReturnObject():Object
+			{
+				if (registrationCreds){
+					if (chosenIcon){
+						registrationCreds.icon = chosenIcon;
+					}
+					return registrationCreds;
+				}
+				else{
+					return chosenIcon;
+				}
+				
+			} 
+			
+		
+			
+			
+			
+		]]>
+	</fx:Script>
+	
+	<s:navigationContent>
+		<components:RoboIconButton width="100%" height="100%" source="{ImageManager.BackIcon}" click="navigator.popView()"/>
+	</s:navigationContent>
+	
+	<s:titleContent>
+			<s:Label id="titleLabel" text="{title}" styleName="viewTitle"/>
+			<s:Spacer width="15"/>
+			<s:BitmapImage id="titleImage" source="{vm.userIcon.iconURL}" width="48" height="48" smooth="true"/>
+	</s:titleContent>
+
+	
+	<s:List id="iconList" width="100%" dataProvider="{vm.icons}" horizontalCenter="0" top="-1" bottom="80" contentBackgroundAlpha="0" selectedItem="@{selectedIcon}">
+		<s:layout>
+			<s:TileLayout id="tileLayout" horizontalAlign="center" verticalAlign="middle" 
+						  horizontalGap="36" verticalGap="36"/>
+		</s:layout>
+		<s:itemRenderer>
+			<fx:Component>
+				<renderers:SelectIconRenderer iconField="iconURL" iconSize="72"/>
+			</fx:Component>
+		</s:itemRenderer>
+	</s:List>
+	
+	<s:SkinnableContainer width="100%" bottom="0" skinClass="com.aristobot.flexmobile.skins.ContainerBarSkin">
+
+		
+		<s:HGroup height="100%" paddingLeft="25" paddingRight="100" gap="5" verticalAlign="middle">
+			<s:Label text="{selectedIcon.iconName}" styleName="iconNameLabel level{selectedIcon.level}" fontWeight="bold" visible="{selectedIcon != null}"/>
+			<s:Label text="(Level {selectedIcon.level} Icon)" styleName="iconNameLabel level{selectedIcon.level}" fontWeight="normal" visible="{selectedIcon != null}"/>
+		</s:HGroup>
+		
+		<components:UnlockMeter id="unlockMeter" creationComplete="setIconUnlockInfo(event)" left="25" width="70%" verticalCenter="10" visible="{iconUnlockInfo != null &amp;&amp; selectedIcon == null}"/>
+		
+		
+		<components:RoboButton label="Select" enabled="{iconList.selectedIndex >= 0}" click="select()" height="60" top="10" bottom="10" right="10" styleName="goButton"/>
+	</s:SkinnableContainer>
+	
+
+</s:View>

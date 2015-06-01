@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<windows:AlertWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:windows="com.aristobot.flexmobile.components.windows.*"
+		xmlns:components="com.aristobot.flexmobile.components.*"
+		closeEnabled="true"
+		initialize="initializeHandler()"
+		creationComplete="creationCompleteHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[	
+			import com.aristobot.data.GameData;
+			import com.aristobot.data.Player;
+			import com.aristobot.flexmobile.events.GameEvent;
+			import com.aristobot.flexmobile.model.ImageManager;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			import flash.utils.setTimeout;
+			
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			
+			public static const REMATCH:String = "rematch";
+			
+			[Bindable]
+			protected var _imageSize:Number;
+			
+			[Bindable]
+			protected var _iconSize:Number;
+			
+			[Bindable]
+			protected var _gameData:GameData;
+			
+			protected var _rematchEnabled:Boolean;
+						
+			protected var vm:ViewModel = ViewModel.getInstance();
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				/*if (_rematchEnabled){
+					addElement(rematchButton);
+				}*/
+			}
+			
+			protected function initializeHandler():void
+			{
+				if (vm.applicationDPI == 240){
+					_imageSize = 48;
+					_iconSize = 32;
+				}
+				else{
+					_imageSize = 64;
+					_iconSize = 48;
+				}
+				
+				width = FlexGlobals.topLevelApplication.width*0.75;
+			}
+			
+			
+			public function set gameData(value:GameData):void
+			{
+				_gameData = value;
+				setCurrentState(_gameData.player.playerStatus);
+			}
+			
+			
+			protected function rematchClick(event:MouseEvent):void
+			{
+				close();
+				dispatchEvent(new GameEvent(GameEvent.REMATCH,_gameData));
+			}
+
+			public function set rematchEnabled(value:Boolean):void
+			{
+				_rematchEnabled = value;
+			}
+			
+			
+			
+		]]>
+	</fx:Script>
+	
+
+	<windows:states>
+		<s:State name="won" stateGroups="wonGroup"/>
+		<s:State name="lost" stateGroups="lostGroup"/>
+		<s:State name="tied" stateGroups="tiedGroup"/>
+	</windows:states>
+	
+	<windows:layout>
+		<s:VerticalLayout horizontalAlign="center" gap="15"/>
+	</windows:layout>
+
+	<s:HGroup gap="10" verticalAlign="middle">
+		<s:BitmapImage width="{_imageSize}" height="{_imageSize}" smooth="true" source.wonGroup="{ImageManager.VictoryIcon}" source.lostGroup="{ImageManager.DefeatIcon}" source.tiedGroup="{ImageManager.DrawIcon}"/>
+		<s:Label id="titleLabel" text.wonGroup="Victory!" text.lostGroup="Defeat!" text.tiedGroup="Draw!" styleName="alertTitle"/>
+		
+	</s:HGroup>
+	
+	<s:Label id="descriptionLabel" width="100%" text="{_gameData.lastActionMessage}" textAlign="center" styleName="alertSubLabel"/>
+		
+	<components:UnlockMeter id="unlockMeter" width="100%" data="{_gameData.iconUnlockInfo}"/>
+	
+	
+	
+</windows:AlertWindow>

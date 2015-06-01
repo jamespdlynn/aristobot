@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<windows:AlertWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		initialize="initializeHandler()" xmlns:windows="com.aristobot.admin.windows.*" xmlns:components="com.aristobot.admin.components.*">
+	
+	<windows:layout>
+		<s:HorizontalLayout horizontalAlign="center" verticalAlign="middle" gap="8"/>
+	</windows:layout>
+	
+	<fx:Script>
+		<![CDATA[	
+			
+			[Bindable]
+			protected var _imageSize:Number;
+			
+			[Bindable]
+			protected var _spinnerSize:Number;
+			
+			protected var _priority:int;
+			public function get priority():int{
+				return _priority;
+			}
+			public function set priority(value:int):void{
+				_priority = value;
+			}
+						
+			protected function initializeHandler():void
+			{
+				_spinnerSize = 56;
+			}
+			
+			[Bindable]
+			private var _label:String;
+			public function set label(value:String):void
+			{
+				_label = value;
+			}
+
+		]]>
+	</fx:Script>
+
+	<s:BitmapImage source="@Embed('/assets/icons/aristobot_72.png')" width="{_imageSize}" height="{_imageSize}" smooth="true"/>
+	<s:Label id="alertLabel" text="{_label}" styleName="alertLabel"/>
+	
+	<s:Spacer width="2"/>
+	
+	<components:BusyIndicator width="{_spinnerSize}" height="{_spinnerSize}"/>
+	
+</windows:AlertWindow>

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" 
+		xmlns:components="com.aristobot.flexmobile.components.*" 
+		xmlns:mx="library://ns.adobe.com/flex/mx"
+		title="Account Settings">
+	
+	<fx:Declarations>
+		<mx:EmailValidator id="emailValidator" source="{emailAddressInput}" property="text"/>
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.as3srserrvice.events.FaultEvent;
+			import com.aristobot.as3srserrvice.events.ResultEvent;
+			import com.aristobot.as3srserrvice.model.ServiceModel;
+			import com.aristobot.data.UserCredentials;
+			import com.aristobot.flexmobile.model.ActionContentManager;
+			import com.aristobot.flexmobile.model.AlertManager;
+			import com.aristobot.flexmobile.model.ImageManager;
+			import com.aristobot.flexmobile.model.ViewController;
+			import com.aristobot.flexmobile.model.ViewModel;
+			
+			private var srm:ServiceModel = ServiceModel.getInstance();
+			
+			private var vc:ViewController = ViewController.getInstance();
+			
+			private var vm:ViewModel = ViewModel.getInstance();
+			
+			public function update():void
+			{
+				
+				if (quickValidation())
+				{
+					var creds:UserCredentials = new UserCredentials();
+					creds.username = userInput.text;
+					creds.emailAddress = emailAddressInput.text;
+					
+					if (passwordInput.text.length > 0){
+						creds.password = passwordInput.text;
+					}
+										
+					AlertManager.displayLoadWindow("Updating Account...");
+					srm.userService.updateUserInfo(creds, updateSuccess, updateFault);
+				}
+			}
+			
+			protected function quickValidation():Boolean
+			{
+
+				if (emailAddressInput.text.length == 0 || emailValidator.validate().results)
+				{
+					emailAddressInput.displayError("Please enter a valid email");
+					emailAddressInput.setFocus();
+					return false;
+				}
+				else if (confirmPasswordInput.text != passwordInput.text)
+				{
+					
+					confirmPasswordInput.clear();
+					confirmPasswordInput.setFocus();
+					confirmPasswordInput.displayError("Passwords do not match");
+					return false;
+				}
+
+				
+				return true;
+			}
+			
+			
+			
+			protected function updateSuccess(event:ResultEvent):void
+			{
+				srm.userService.getCurrentUser(vm.loadCurrentUserResult);
+				AlertManager.closeLoadWindow();
+				AlertManager.displayNotificaitonWindow("Account Successfully Updated");
+				navigator.popView();
+			}
+			
+
+			protected function updateFault(event:FaultEvent):void
+			{
+				ActionContentManager.stopLoading();
+				AlertManager.closeLoadWindow();
+				
+				switch (event.faultCode)
+				{
+
+					case (FaultEvent.INVALID_PASSWORD):
+						AlertManager.displayNotificaitonWindow("Password must be atleast 6 characters");
+						passwordInput.clear();
+						passwordInput.setFocus();
+						break;
+					
+					case (FaultEvent.DUPLICATE_EMAIL_ADDRESS):
+						
+						AlertManager.displayNotificaitonWindow("Email Address has already been registered to an Aristobot Games account.");
+						emailAddressInput.setFocus();
+						break;
+					
+					default:
+						srm.defaultFaultHandler(event);
+						break;	
+				}
+				
+			}
+			
+
+		]]>
+	</fx:Script>
+	
+	<s:layout>
+		<s:VerticalLayout gap="30" horizontalAlign="center" paddingTop="30" paddingBottom="30" paddingLeft="30" paddingRight="30"/>
+	</s:layout>
+	
+	<s:titleContent>
+		<s:Label id="titleLabel" text="{title}" styleName="viewTitle"/>
+	</s:titleContent>
+	
+	<s:navigationContent>
+		<components:RoboIconButton width="100%" height="100%" source="{ImageManager.BackIcon}" click="navigator.popView()"/>
+	</s:navigationContent>
+
+	<components:FormTextInput width="100%" id="userInput" label="Username" text="{vm.currentUser.username}" maxChars="12" enabled="false"/>
+
+	<components:FormTextInput width="100%" id="emailAddressInput" label="Email" text="{vm.currentUser.emailAddress}" maxChars="45" change="{updateButton.enabled = true}" type="email"/>
+	
+	<components:FormTextInput width="100%" id="passwordInput" label="New Password" displayAsPassword="true" maxChars="15" change="{updateButton.enabled = true}" returnKeyLabel="next" enter="{confirmPasswordInput.setFocus()}"/>
+	
+	<components:FormTextInput width="100%" id="confirmPasswordInput" label="Confirm Password" displayAsPassword="true" maxChars="15"/>
+	
+	<s:Group width="100%">
+		<components:RoboButton id="updateButton" label="Update" click="update()" right="0" styleName="goButton" height="72" enabled="false"/>
+	</s:Group>
+	
+		
+	
+	
+</s:View>

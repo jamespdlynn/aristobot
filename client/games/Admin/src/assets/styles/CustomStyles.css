@@ -1,0 +1,160 @@
+/* CSS file */
+
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace windows "com.aristobot.admin.windows.*";
+@namespace components "com.aristobot.admin.components.*";
+@namespace skins "com.aristobot.admin.skins.*";
+@namespace mx "library://ns.adobe.com/flex/mx";
+
+global
+{
+	chromeColor: #294867;
+	color: #CEE7F4;
+	contentBackgroundColor: #294867;
+	symbolColor: #FFFFFF;
+	rollOverColor: #971300;
+	selectionColor: #971300;
+	focusColor: #971300;
+	accentColor: #FFFFFF;
+	textShadowColor:#000000;
+	fontSize:22;
+}
+
+s|Label{
+	color:#EAEAEA;
+}
+
+s|TextInput{
+	fontSize:22;
+	paddingTop:10;
+	paddingBottom:8;
+	paddingLeft:8;
+	contentBackgroundColor:#FFFFFF;
+	borderColor:#21466B;
+	color:#000000;
+	skinClass:ClassReference("com.aristobot.admin.skins.TextInputSkin");
+}
+
+mx|TabNavigator{
+	backgroundColor: #294867;
+}
+
+s|TextArea{
+	fontSize:22;
+	contentBackgroundColor:#FFFFFF;
+	color:#000000;
+	skinClass:ClassReference("com.aristobot.admin.skins.TextAreaSkin");
+}
+
+s|List{
+	contentBackgroundColor:#252424;
+	borderVisible:false;
+	selectionColor:#971300;
+	rollOverColor:#C41801;
+	alternatingItemColors:#252424, #333333;
+}
+
+s|List s|Label{
+	paddingLeft:10;
+	paddingTop:10;
+	paddingBottom:10;
+}
+
+
+
+windows|AlertWindow{
+	padding:25;
+	backgroundColor:#252424;
+	cornerRadius:6;
+	borderColor:#FFFFFF;
+	borderThickness:3;
+}
+
+s|Button{
+	cornerRadius:10;
+	fontSize:24;
+	chromeColor:#252424;
+	color:#FFFFFF;
+	skinClass:ClassReference("com.aristobot.admin.skins.ButtonSkin");
+}
+
+
+components|BusyIndicator{
+	symbolColor:#FFFFFF;
+}
+
+skins|ContainerBarSkin{
+	contentBackgroundColor:#252424;
+}
+
+
+
+.viewTitle{
+	font-size:28;
+	fontWeight:bold;
+	color:#FFFFFF;
+}
+
+.goButton{
+	chromeColor:#006005;
+	color:#FFFFFF;
+}
+
+.stopButton{
+	chromeColor:#820909;
+	color:#FFFFFF;
+}
+
+.specialButton{
+	chromeColor:#1A6684;
+	color:#FFFFFF;
+}
+
+
+.formLabel{
+	color:#FFFFFF;
+	fontSize:19;
+	font-weight:bold;
+}
+
+.errorLabel{
+	color:#DB434E;
+	fontSize:19;
+	font-weight:bold;
+}
+
+.alertTitle{
+	fontSize:28;
+	fontWeight:bold;
+}
+
+.alertLabel{
+	fontSize:22;
+	fontWeight:bold;
+}
+
+.alertSubLabel{
+	fontSize:21;
+}
+
+.iconNameLabel{
+	fontSize:26;
+	fontWeight:normal;
+}
+
+.level1{
+	color:#EAEAEA;
+}
+
+.level2{
+	color:#1EDC16;
+}
+
+.level3{
+	color:#0070B9;
+}
+
+.level4{
+	color:#A335AE;
+}
+

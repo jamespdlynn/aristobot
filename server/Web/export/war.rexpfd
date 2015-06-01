@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<rexpfd>
+    <destination path="DestructorV2.Amazon Cloud:/autodeploy"/>
+    <options createDirectoryStructure="false" createSelectedOnly="true" descriptionFilePath="/services/export/war.rexpfd" overWriteExistingFiles="false" reviewSynchronize="false" saveSettings="true"/>
+    <selectedElements>
+        <file path="/services/bin/services.war"/>
+    </selectedElements>
+</rexpfd>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding ="utf-8"?>
+<swc xmlns="http://www.adobe.com/flash/swccatalog/9">
+  <versions>
+    <swc version="1.2" />
+    <flex version="4.6.0" build="23201" minimumSupportedVersion="3.0.0" />
+  </versions>
+  <features>
+    <feature-script-deps />
+    <feature-files />
+  </features>
+  <libraries>
+    <library path="library.swf">
+      <script name="pl/mllr/extensions/contactEditor/ContactEditor" mod="1351022249000" signatureChecksum="96177066" >
+        <def id="pl.mllr.extensions.contactEditor:ContactEditor" /> 
+        <dep id="flash.display:BitmapData" type="e" /> 
+        <dep id="trace" type="e" /> 
+        <dep id="flash.events:StatusEvent" type="e" /> 
+        <dep id="flash.external:ExtensionContext" type="e" /> 
+        <dep id="Error" type="e" /> 
+        <dep id="flash.geom:Point" type="e" /> 
+        <dep id="pl.mllr.extensions.contactEditor:ContactEditorEvent" type="e" /> 
+        <dep id="flash.display:BitmapData" type="s" /> 
+        <dep id="flash.events:StatusEvent" type="s" /> 
+        <dep id="flash.external:ExtensionContext" type="s" /> 
+        <dep id="Error" type="s" /> 
+        <dep id="flash.geom:Point" type="s" /> 
+        <dep id="AS3" type="n" /> 
+        <dep id="flash.events:EventDispatcher" type="i" /> 
+      </script>
+      <script name="pl/mllr/extensions/contactEditor/ContactEditorEvent" mod="1339778587000" signatureChecksum="36728555" >
+        <def id="pl.mllr.extensions.contactEditor:ContactEditorEvent" /> 
+        <dep id="AS3" type="n" /> 
+        <dep id="flash.events:Event" type="i" /> 
+      </script>
+      <script name="_242fe7d9b0bdfffd00bec139c3075abcd497148e9823c0dd9975d6c678fa8b6a_flash_display_Sprite" mod="1351022249955" signatureChecksum="3382410297" >
+        <def id="_242fe7d9b0bdfffd00bec139c3075abcd497148e9823c0dd9975d6c678fa8b6a_flash_display_Sprite" /> 
+        <dep id="flash.system:Security" type="e" /> 
+        <dep id="AS3" type="n" /> 
+        <dep id="flash.display:Sprite" type="i" /> 
+      </script>
+      <digests>
+        <digest type="SHA-256" signed="false" value="68d71f0e6663978f515e2df8e4115894a5340be9a0adcef78ba109b103a8da71"   />
+      </digests>
+    </library>
+  </libraries>
+  <files>
+  </files>
+</swc>

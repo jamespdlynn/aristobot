@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 gap="2"
+		 horizontalAlign="center"
+		 verticalAlign="bottom"
+		 creationComplete="setIconProperties()">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.aristobot.chess.data.CapturedIconVO;
+			
+			import flash.filters.GlowFilter;
+			
+			import mx.events.FlexEvent;
+
+			private var _capturedIconVO:CapturedIconVO;
+			
+			public function get capturedIconVO():CapturedIconVO
+			{
+				return _capturedIconVO;
+			}
+			public function set capturedIconVO(value:CapturedIconVO):void
+			{
+				_capturedIconVO = value;
+				
+				if (!_capturedIconVO || _capturedIconVO.numCaptured == 0){
+					currentState = "empty";
+				}
+				else{
+					var state:String = (_capturedIconVO.numCaptured < 2) ? "iconOnly" : "iconAndLabel";
+					currentState = (_capturedIconVO.isWhite) ? state : state+"Filter";
+				}
+				
+				setIconProperties();
+			}
+			
+			protected function setIconProperties():void
+			{
+				if (capturedIconVO)
+				{
+					if (iconImage){
+						iconImage.source = capturedIconVO.iconSource;
+					}
+					
+					if (iconLabel){
+						iconLabel.text = "x"+capturedIconVO.numCaptured;
+					}
+				}
+				
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="empty"/>
+		<s:State name="iconOnly" stateGroups="iconGroup"/>
+		<s:State name="iconOnlyFilter" stateGroups="iconGroup, filterGroup"/>
+		<s:State name="iconAndLabel" stateGroups="iconGroup, labelGroup"/>
+		<s:State name="iconAndLabelFilter" stateGroups="iconGroup, labelGroup, filterGroup"/>
+	</s:states>
+	
+	<s:BitmapImage id="iconImage" x="0"  width="{this.height}" height="{this.height}"
+				   smooth="true" includeIn="iconGroup" filters.filterGroup="{[new GlowFilter(0xFFFFFF,0.2,16,16,1)]}"/>
+	
+	<s:Label id="iconLabel" color="#FFFFFF" fontWeight="bold" paddingTop="1" includeIn="labelGroup"/>
+</s:HGroup>
